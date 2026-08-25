@@ -1,0 +1,32 @@
+{
+    // Empty for now. Each mod will be its own Gradle build in a subdirectory,
+    // in Java, Kotlin or Groovy, resolving the API from the coderpack packages.
+    "editor.formatOnSave": true,
+    // Same reasoning as coderpack: no shared formatter profile across mods.
+    "editor.formatOnSaveMode": "modifications",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.rulers": [80],
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+
+    "[markdown]": {
+        "editor.tabSize": 2
+    },
+
+    // There is no build at this repository's root and there never will be; the
+    // builds are one level down, one per mod.
+    "gradle.nestedProjects": true,
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.compile.nullAnalysis.mode": "disabled",
+
+    "files.exclude": {
+        "**/build": true,
+        "**/.gradle": true
+    },
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/.gradle/**": true
+    }
+}
