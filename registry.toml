@@ -1,0 +1,17 @@
+# Who this repository is, for a launcher that has been pointed at it.
+#
+# This is the hand-written half. The other half, sacred.mods.repository.json,
+# is generated from this file and from the jars that were built -- every field
+# describing a mod is copied out of the descriptor inside its jar, so the
+# version a player is offered is the version in the jar they get:
+#
+#     coderpack index
+#     coderpack index --check     what CI runs, so an edited index fails
+#
+# {id}, {version} and {file} in releases are filled in per mod.
+
+name = "Ancaria"
+description = "Mods made by the team behind the loader."
+url = "https://github.com/ancaria-dev/mods"
+icon = "icon.png"
+releases = "https://github.com/ancaria-dev/mods/releases/download/{id}-v{version}/{file}"
