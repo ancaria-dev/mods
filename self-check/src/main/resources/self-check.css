@@ -1,0 +1,93 @@
+/* The launcher's palette, so the two look like they came from the same place. */
+.root-pane {
+    -fx-background-color: #14120f;
+}
+
+.header {
+    -fx-border-color: transparent transparent #322d24 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.title {
+    -fx-text-fill: #e8e2d4;
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+}
+
+.summary {
+    -fx-text-fill: #9a9280;
+    -fx-font-size: 13px;
+}
+
+.heading {
+    -fx-text-fill: #9a9280;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.panel {
+    -fx-padding: 14 0 0 0;
+}
+
+.progress > .bar {
+    -fx-background-color: #c8a45c;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+}
+
+.progress > .track {
+    -fx-background-color: #221e18;
+    -fx-background-radius: 6;
+}
+
+.list-view {
+    -fx-background-color: #1f1c17;
+    -fx-background-radius: 10;
+    -fx-border-color: #322d24;
+    -fx-border-radius: 10;
+    -fx-padding: 6;
+}
+
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 7 10 7 10;
+}
+
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:filled:hover {
+    -fx-background-color: #262218;
+    -fx-background-radius: 7;
+}
+
+.mark {
+    /* The one place the emoji font matters: without it the boxes render as
+       tofu on some Windows installs. */
+    -fx-font-family: "Segoe UI Emoji";
+    -fx-font-size: 15px;
+}
+
+.check-title {
+    -fx-text-fill: #e8e2d4;
+    -fx-font-size: 13px;
+}
+
+.check-detail {
+    -fx-text-fill: #9a9280;
+    -fx-font-size: 11.5px;
+}
+
+.log-time {
+    -fx-fill: #6f685a;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 11px;
+}
+
+.log-text {
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 11.5px;
+}
+
+.log-event  { -fx-fill: #9a9280; }
+.log-change { -fx-fill: #c8a45c; }
+.log-pass   { -fx-fill: #7fb069; }
+.log-fail   { -fx-fill: #d1655b; }
