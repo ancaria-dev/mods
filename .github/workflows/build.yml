@@ -1,0 +1,81 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The release gate asks the remote which mod tags already exist.
+          fetch-depth: 0
+
+      # Two checkouts that will not be here forever. The plugin, the linter and
+      # the command line come from `build`, and the API from `coderpack`, and
+      # neither has been released yet -- so this job builds both and publishes
+      # them into the local Maven repository the mods resolve from. After the
+      # first release these two steps go away and settings.gradle.kts finds
+      # everything in the plugin portal and Central.
+      - uses: actions/checkout@v7
+        with:
+          repository: ancaria-dev/build
+          path: .tools/build
+      - uses: actions/checkout@v7
+        with:
+          repository: ancaria-dev/coderpack
+          path: .tools/coderpack
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: The toolchain these mods are built with
+        run: |
+          (cd .tools/coderpack && ./gradlew publishToMavenLocal --no-daemon)
+          (cd .tools/build/gradle && ./gradlew publishToMavenLocal :templates:installDist --no-daemon)
+
+      # assembleSacredMod runs the linter over every jar before it copies one
+      # anywhere, so a mod that the loader would skip fails here rather than in
+      # somebody's game.
+      - name: Build every mod
+        run: ./gradlew assembleSacredMod --no-daemon
+
+      # The index is generated from the built jars, and it is committed. This
+      # says the committed one is still what the jars say -- a version bumped
+      # without regenerating it would otherwise offer players the old jar under
+      # the new number.
+      - name: The index agrees with the jars
+        run: .tools/build/templates/build/install/coderpack/bin/coderpack index --check
+
+      # One release per mod, tagged <id>-v<version>, which is exactly the URL
+      # the index publishes. Nothing is released twice: the tag is the record,
+      # and a push that changes no version publishes nothing.
+      - name: Release what has a new version
+        if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          for id in $(jq -r '.mods[].id' sacred.mods.repository.json); do
+            entry=$(jq -r ".mods[] | select(.id == \"$id\")" sacred.mods.repository.json)
+            version=$(echo "$entry" | jq -r .version)
+            file=$(echo "$entry" | jq -r .file)
+            tag="$id-v$version"
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+              echo "$tag is already published"
+              continue
+            fi
+            gh release create "$tag" "$id/build/sacred-mod/$file" \
+              --title "$id $version" \
+              --notes "Install it from the launcher, or drop the jar in <Sacred Gold>/mods."
+          done
