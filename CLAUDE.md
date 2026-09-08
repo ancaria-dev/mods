@@ -154,10 +154,10 @@ the jar version and other build metadata.
 
 ## Versions and releases
 
-Each mod currently has its own `version = "0.1.0"` in
+Each mod currently has its own `version = "0.99.0"` in
 `<id>/build.gradle.kts`. The plugin and API dependency are also currently
-`0.1.0`. The generated descriptor uses the project version. The API contract
-range is `[1,2)`, which is distinct from the `0.1.0` artifact version.
+`0.99.0`. The generated descriptor uses the project version. The API contract
+range is `[1,2)`, which is distinct from the `0.99.0` artifact version.
 
 For every mod version change, update its `build.gradle.kts`, rebuild the jar,
 run `coderpack index`, and commit the version change with the regenerated
@@ -204,7 +204,7 @@ Self Check also has focused commands:
 
 ```
 python self-check/verify.py
-java -cp self-check/build/sacred-mod/self-check-0.1.0.jar dev.ancaria.selfcheck.view.Preview
+java -cp self-check/build/sacred-mod/self-check-0.99.0.jar dev.ancaria.selfcheck.view.Preview
 ```
 
 `self-check/verify.py` needs the built mod jar plus Coderpack `api` and `zygote`
@@ -214,17 +214,27 @@ without a game session.
 
 ## Repository boundaries
 
-This build does not read sibling source directories. The Gradle plugin,
-linter, and `coderpack` command come from `build`. The API comes from
-`coderpack`. Until those artifacts are released, publish both to Maven Local:
+This build does not read sibling source directories. The Gradle plugin and the
+API resolve from the Gradle Plugin Portal and Maven Central, per
+`settings.gradle.kts`. `gradle/libs.versions.toml` holds the one `coderpack`
+version number both the root `build.gradle.kts` (`alias(libs.plugins.coderpack)`)
+and every mod's `sacred { apiVersion = libs.versions.coderpack.get() }` read,
+so raising it moves every mod together.
+
+The `coderpack` command line is a different kind of dependency: not a Maven
+coordinate, but the `coderpack-*.zip` asset on an `ancaria-dev/build`
+release, downloaded by CI and used for `coderpack index --check`. `dependencies.json`
+pins the exact release tag CI downloads -- never "latest", so a bad `build`
+release cannot break this repository's CI on its own schedule. Bump the pin
+there when there is a reason to move.
+
+To test an unreleased Gradle-coordinate change, publish it to Maven Local
+first, which `settings.gradle.kts` checks ahead of the portal and Central:
 
 ```
 cd ../coderpack && ./gradlew publishToMavenLocal
 cd ../build/gradle && ./gradlew publishToMavenLocal
 ```
-
-CI uses separate `build` and `coderpack` checkouts to populate Maven Local,
-then installs the `coderpack` distribution from `build/templates`.
 
 The `launcher` reads this repository over HTTPS at run time. Do not add mod
 jars to the launcher payload or `launcher/tools/build.ps1`. Players choose and
