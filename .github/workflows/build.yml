@@ -17,21 +17,6 @@ jobs:
           # The release gate asks the remote which mod tags already exist.
           fetch-depth: 0
 
-      # Two checkouts that will not be here forever. The plugin, the linter and
-      # the command line come from `build`, and the API from `coderpack`, and
-      # neither has been released yet -- so this job builds both and publishes
-      # them into the local Maven repository the mods resolve from. After the
-      # first release these two steps go away and settings.gradle.kts finds
-      # everything in the plugin portal and Central.
-      - uses: actions/checkout@v7
-        with:
-          repository: ancaria-dev/build
-          path: .tools/build
-      - uses: actions/checkout@v7
-        with:
-          repository: ancaria-dev/coderpack
-          path: .tools/coderpack
-
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
@@ -39,23 +24,32 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
-      - name: The toolchain these mods are built with
-        run: |
-          (cd .tools/coderpack && ./gradlew publishToMavenLocal --no-daemon)
-          (cd .tools/build/gradle && ./gradlew publishToMavenLocal :templates:installDist --no-daemon)
-
       # assembleSacredMod runs the linter over every jar before it copies one
       # anywhere, so a mod that the loader would skip fails here rather than in
-      # somebody's game.
+      # somebody's game. The plugin resolves from the Gradle Plugin Portal and
+      # the API from Maven Central, per settings.gradle.kts.
       - name: Build every mod
         run: ./gradlew assembleSacredMod --no-daemon
+
+      # Pinned in dependencies.json rather than "latest": a bad build release
+      # should not be able to break every mod's CI on its own schedule. Bump
+      # the pin in a normal PR when there is a reason to move.
+      - name: Get the coderpack command line
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(jq -r '.[] | select(.path=="ancaria-dev/build") | .version' dependencies.json)
+          gh release download --repo ancaria-dev/build --tag "v$version" \
+            --pattern 'coderpack-*.zip' --dir .coderpack
+          unzip -q .coderpack/coderpack-*.zip -d .coderpack
+          echo "$PWD/$(echo .coderpack/coderpack-*/bin)" >> "$GITHUB_PATH"
 
       # The index is generated from the built jars, and it is committed. This
       # says the committed one is still what the jars say -- a version bumped
       # without regenerating it would otherwise offer players the old jar under
       # the new number.
       - name: The index agrees with the jars
-        run: .tools/build/templates/build/install/coderpack/bin/coderpack index --check
+        run: coderpack index --check
 
       # One release per mod, tagged <id>-v<version>, which is exactly the URL
       # the index publishes. Nothing is released twice: the tag is the record,
