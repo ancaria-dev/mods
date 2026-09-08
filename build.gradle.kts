@@ -3,5 +3,5 @@
 // owns it rather than shared from here: these are the examples a mod author
 // reads, and a block assembled out of two files teaches the wrong shape.
 plugins {
-    id("dev.ancaria.coderpack") version "0.1.0" apply false
+    alias(libs.plugins.coderpack) apply false
 }

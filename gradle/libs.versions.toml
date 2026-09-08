@@ -1,0 +1,8 @@
+# One number for the coderpack toolchain, referenced everywhere it appears
+# instead of being retyped in the root build script and in every mod's
+# `sacred { apiVersion = ... }`. Bump it here and every consumer moves together.
+[versions]
+coderpack = "0.99.0"
+
+[plugins]
+coderpack = { id = "dev.ancaria.coderpack", version.ref = "coderpack" }
