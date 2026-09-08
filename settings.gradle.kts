@@ -1,8 +1,8 @@
 // The plugin and the API come from a repository, not from a sibling checkout,
-// so this builds the same wherever it is cloned. Nothing has been released yet,
-// which means only the first line here resolves anything today: run
-// `publishToMavenLocal` in a checkout of `build` and one of `coderpack`. The
-// plugin portal and Central are what those become after the first release.
+// so this builds the same wherever it is cloned: the plugin from the Gradle
+// Plugin Portal, the API from Maven Central. mavenLocal() stays first so a
+// `publishToMavenLocal` run in `build` or `coderpack` still overrides them
+// for local testing of an unreleased change.
 pluginManagement {
     repositories {
         mavenLocal()
