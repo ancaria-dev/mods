@@ -39,7 +39,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           version=$(jq -r '.[] | select(.path=="ancaria-dev/build") | .version' dependencies.json)
-          gh release download --repo ancaria-dev/build --tag "v$version" \
+          gh release download "v$version" --repo ancaria-dev/build \
             --pattern 'coderpack-*.zip' --dir .coderpack
           unzip -q .coderpack/coderpack-*.zip -d .coderpack
           echo "$PWD/$(echo .coderpack/coderpack-*/bin)" >> "$GITHUB_PATH"
