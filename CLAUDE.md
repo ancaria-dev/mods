@@ -161,7 +161,10 @@ range is `[1,2)`, which is distinct from the `0.99.0` artifact version.
 
 For every mod version change, update its `build.gradle.kts`, rebuild the jar,
 run `coderpack index`, and commit the version change with the regenerated
-index. Never reuse a published version for different bytes.
+index. Never reuse a published version for different bytes. `tools/version.ps1`
+does the first step for all four mods at once -- it refuses to run if they are
+not already on the same version -- but not the rebuild or the index; those
+still need `assembleSacredMod` and `coderpack index` by hand afterward.
 
 CI creates one GitHub release per mod on `master`, tagged
 `<id>-v<version>`, and uploads `<id>/build/sacred-mod/<file>`. The workflow
