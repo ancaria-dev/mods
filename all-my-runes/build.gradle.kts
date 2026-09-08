@@ -2,7 +2,7 @@ plugins {
     id("dev.ancaria.coderpack")
 }
 
-version = "0.1.0"
+version = "0.99.0"
 
 sacred {
     id = "all-my-runes"
@@ -12,6 +12,6 @@ sacred {
     author("MairwunNx (Pavel Erokhin)")
     website = "https://ancaria.dev"
     repository = "https://github.com/ancaria-dev/mods"
-    apiVersion = "0.1.0"
+    apiVersion = libs.versions.coderpack.get()
     installTo = layout.dir(providers.gradleProperty("sacredDir").map { file("$it/mods") })
 }
