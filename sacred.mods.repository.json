@@ -8,37 +8,37 @@
     {
       "id": "all-my-runes",
       "name": "All My Runes",
-      "version": "0.1.0",
+      "version": "0.99.0",
       "description": "Turns runes for other classes into runes for your class. Pick up one of your own first so the mod can copy it.",
       "api": "[1,2)",
       "authors": ["MairwunNx (Pavel Erokhin)"],
       "website": "https://ancaria.dev",
       "source": "all-my-runes",
       "icon": "all-my-runes/icon.png",
-      "file": "all-my-runes-0.1.0.jar",
-      "size": 8225,
-      "sha256": "a77291fdfd5ea6d10fadc5e99ec064ea08024e4434e1dab08842cfa99b9b11bd",
-      "url": "https://github.com/ancaria-dev/mods/releases/download/all-my-runes-v0.1.0/all-my-runes-0.1.0.jar"
+      "file": "all-my-runes-0.99.0.jar",
+      "size": 8212,
+      "sha256": "485de45cbf4fa541cdcf6acdbfeb800b136a6b2b7674d197ab253c9635844c9a",
+      "url": "https://github.com/ancaria-dev/mods/releases/download/all-my-runes-v0.99.0/all-my-runes-0.99.0.jar"
     },
     {
       "id": "old-huge-potions",
       "name": "Old Huge Potions",
-      "version": "0.1.0",
+      "version": "0.99.0",
       "description": "Restores Sacred’s original potion system by turning every potion you pick up into the full-size version of its kind.",
       "api": "[1,2)",
       "authors": ["MairwunNx (Pavel Erokhin)"],
       "website": "https://ancaria.dev",
       "source": "old-huge-potions",
       "icon": "old-huge-potions/icon.png",
-      "file": "old-huge-potions-0.1.0.jar",
-      "size": 4395,
-      "sha256": "2890863c928db483ffcbf044ecd9ca262571dea6d2c70d0fea0c00bb54755d62",
-      "url": "https://github.com/ancaria-dev/mods/releases/download/old-huge-potions-v0.1.0/old-huge-potions-0.1.0.jar"
+      "file": "old-huge-potions-0.99.0.jar",
+      "size": 4396,
+      "sha256": "e51d8690e547fc7fbaae5b204e8a1490261ef6e9a2920670d74ea38a903b4954",
+      "url": "https://github.com/ancaria-dev/mods/releases/download/old-huge-potions-v0.99.0/old-huge-potions-0.99.0.jar"
     },
     {
       "id": "self-check",
       "name": "Self Check",
-      "version": "0.1.0",
+      "version": "0.99.0",
       "description": "Shows every event delivered by the loader and tests which events a mod can rewrite.",
       "api": "[1,2)",
       "authors": ["MairwunNx (Pavel Erokhin)"],
@@ -46,25 +46,25 @@
       "conflicts": ["old-huge-potions", "all-my-runes"],
       "source": "self-check",
       "icon": "self-check/icon.png",
-      "file": "self-check-0.1.0.jar",
-      "size": 9373944,
-      "sha256": "0b66a1d8af09acb0bd8069a0d243e54b541f2d17e3dece258ef63c3990c0274e",
-      "url": "https://github.com/ancaria-dev/mods/releases/download/self-check-v0.1.0/self-check-0.1.0.jar"
+      "file": "self-check-0.99.0.jar",
+      "size": 9373945,
+      "sha256": "437d14d07454884e43a816178f8d3a07a5552c0613ced07e2b9abefecbfb5804",
+      "url": "https://github.com/ancaria-dev/mods/releases/download/self-check-v0.99.0/self-check-0.99.0.jar"
     },
     {
       "id": "tracer",
       "name": "Tracer",
-      "version": "0.1.0",
+      "version": "0.99.0",
       "description": "Writes every event the loader receives to a separate log file for each run.",
       "api": "[1,2)",
       "authors": ["MairwunNx (Pavel Erokhin)"],
       "website": "https://ancaria.dev",
       "source": "tracer",
       "icon": "tracer/icon.png",
-      "file": "tracer-0.1.0.jar",
-      "size": 8576,
-      "sha256": "af79a8ac76ae5a053a2bf011cdda581b46c642ae706bdd7bcbe6bac411ccc08b",
-      "url": "https://github.com/ancaria-dev/mods/releases/download/tracer-v0.1.0/tracer-0.1.0.jar"
+      "file": "tracer-0.99.0.jar",
+      "size": 8577,
+      "sha256": "bfdd14da9e2fb8608283e7886d822aae0c2258fba25c0633fa23fba461fb2bf7",
+      "url": "https://github.com/ancaria-dev/mods/releases/download/tracer-v0.99.0/tracer-0.99.0.jar"
     }
   ]
 }
