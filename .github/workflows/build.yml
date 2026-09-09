@@ -16,6 +16,11 @@ jobs:
         with:
           # The release gate asks the remote which mod tags already exist.
           fetch-depth: 0
+          # The index step below pushes the file it regenerates, so the token
+          # has to stay in the git config after the checkout. This is the
+          # default; it is written out because a run that loses it fails in the
+          # push rather than in the checkout.
+          persist-credentials: true
 
       - uses: actions/setup-java@v6
         with:
@@ -44,11 +49,36 @@ jobs:
           unzip -q .coderpack/coderpack-*.zip -d .coderpack
           echo "$PWD/$(echo .coderpack/coderpack-*/bin)" >> "$GITHUB_PATH"
 
-      # The index is generated from the built jars, and it is committed. This
-      # says the committed one is still what the jars say. A version bumped
-      # without regenerating it would otherwise offer players the old jar under
-      # the new number.
+      # The index is generated from the built jars and committed, because a
+      # launcher reads it straight out of this repository. Keeping the two in
+      # step by hand is a chore that only reports itself after the fact, in a
+      # red build, so on master the workflow regenerates the file and commits
+      # it. The jars it reads are the ones this run just built, which is a
+      # better source than whatever happened to be on somebody's disk.
+      #
+      # It runs before the release step on purpose: the tag that step creates
+      # then points at the commit whose index describes the jars being released.
+      - name: Regenerate the index and commit it
+        if: github.ref == 'refs/heads/master'
+        run: |
+          set -e
+          coderpack index
+          if git diff --quiet -- sacred.mods.repository.json; then
+            echo "the index already matched the jars"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sacred.mods.repository.json
+          git commit -m "Regenerate the mod index"
+          # A push made with the workflow token starts no workflow run of its
+          # own, so this cannot loop back into itself.
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      # Nothing may be pushed from a pull request, so there the check stays what
+      # it was: it fails, and says which command puts it right.
       - name: The index agrees with the jars
+        if: github.ref != 'refs/heads/master'
         run: coderpack index --check
 
       # One release per mod, tagged <id>-v<version>, which is exactly the URL
