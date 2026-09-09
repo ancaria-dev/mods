@@ -95,12 +95,14 @@ coderpack index --check   prüfen, ohne etwas zu schreiben
 
 Die Version anzuheben genügt. Auf `master` erzeugt die CI den Index aus den
 soeben gebauten JAR-Dateien neu und committet ihn, sodass er den JARs nicht
-hinterherhinken kann. `coderpack index` im selben Commit selbst auszuführen
-bleibt richtig; dann bleibt der CI nur nichts mehr zu tun. Aus einem Pull
-Request darf nichts gepusht werden, also läuft dort `--check`: das Werkzeug
-schreibt keine Datei und beendet sich mit Code 1, falls der gespeicherte Index
-von den gebauten JAR-Dateien abweicht. Eine JAR-Datei, die bei der Mod-Prüfung
-durchfällt, wird gar nicht erst indiziert.
+hinterherhinken kann und niemand an den Befehl denken muss. `coderpack index`
+selbst auszuführen bleibt richtig; die CI schreibt das Ergebnis einfach neu,
+falls die JAR-Datei auf Ihrem Rechner etwas anders ausfällt, was vorkommt.
+
+Aus einem Pull Request darf nichts gepusht werden, also wird der Index dort nur
+erzeugt und nicht verglichen. Das Erzeugen scheitert weiterhin an einer
+JAR-Datei, die bei der Mod-Prüfung durchfällt, an einer unlesbaren
+`registry.toml` und an zwei Mods mit derselben Kennung.
 
 ## Releases
 

@@ -90,12 +90,14 @@ coderpack index --check   verify it without writing
 ```
 
 Raising a version is enough. On `master`, CI regenerates the index from the
-JARs it just built and commits it, so the file cannot fall behind the jars.
-Running `coderpack index` yourself in the same commit is still correct and
-leaves CI nothing to do. On a pull request, where nothing can be pushed, CI
-runs `--check` instead: it writes nothing and exits with code 1 when the
-committed index differs from the built JARs. Index generation also refuses a
-JAR that fails the mod verifier.
+JARs it just built and commits it, so the file cannot fall behind the JARs, and
+you never have to remember the command. Running `coderpack index` yourself is
+still correct; CI will simply rewrite it if your machine produced a slightly
+different JAR, which happens.
+
+On a pull request, where nothing can be pushed, CI generates the index and does
+not compare it. Generation still refuses a JAR that fails the mod verifier, an
+unreadable `registry.toml`, or two mods claiming one id.
 
 ## Releases
 

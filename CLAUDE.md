@@ -140,8 +140,16 @@ Neither has to be run by hand for a push to master. CI regenerates the index
 from the jars it just built and commits the result itself, before the release
 step, so a tag always points at a commit whose index describes the jars being
 released. Running `coderpack index` locally and committing it is still correct
-and leaves CI nothing to do. On a pull request nothing can be pushed, so there
-CI runs `--check` and fails on a mismatch as it always did.
+and leaves CI nothing to do, though it usually does not: `self-check` packs a
+jar that comes out a few bytes apart on a developer machine and on the runner,
+so a locally generated index normally differs from the one CI writes. That is
+why the workflow no longer compares. It regenerates.
+
+On a pull request nothing can be pushed, so there CI only generates the index
+and throws it away. Comparing it would ask a contributor to reproduce the
+runner's jars byte for byte, which is the thing that cannot be relied on.
+Generating still fails on what a pull request can genuinely get wrong: an
+unreadable `registry.toml`, a duplicate mod id, or a jar the linter refuses.
 
 The regeneration commit is made with the workflow token, and a push made with
 that token starts no workflow run of its own, so this does not loop.
