@@ -49,22 +49,49 @@ jobs:
           unzip -q .coderpack/coderpack-*.zip -d .coderpack
           echo "$PWD/$(echo .coderpack/coderpack-*/bin)" >> "$GITHUB_PATH"
 
-      # The index is generated from the built jars and committed, because a
-      # launcher reads it straight out of this repository. Keeping the two in
-      # step by hand is a chore that only reports itself after the fact, in a
-      # red build, so on master the workflow regenerates the file and commits
-      # it. The jars it reads are the ones this run just built, which is a
-      # better source than whatever happened to be on somebody's disk.
+      # The index is generated and committed, because a launcher reads it
+      # straight out of this repository. Keeping it in step by hand is a chore
+      # that only reports itself afterwards, in a red build, so on master the
+      # workflow writes it and commits it.
       #
-      # It runs before the release step on purpose: the tag that step creates
-      # then points at the commit whose index describes the jars being released.
+      # What it must describe is the jar behind each download URL, not the jar
+      # this run happened to build. Those two are the same for a version being
+      # released now and different for one released earlier whose sources have
+      # moved since, and the launcher refuses a download whose sha256 is not the
+      # one the index published. So a mod whose tag already exists is indexed
+      # from the asset on that release, and only a version with no tag yet is
+      # indexed from the jar just built, which is the jar the release step below
+      # is about to attach to it.
+      #
+      # The staged jars are handed to `coderpack index --jars` rather than the
+      # generated file being edited afterwards, so the file is always written by
+      # the generator and its formatting cannot drift.
       - name: Regenerate the index and commit it
         if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          coderpack index
+          # A first pass, only to learn which mods exist and at which versions.
+          coderpack index --out .index-probe.json
+          mkdir -p .index-jars
+          for id in $(jq -r '.mods[].id' .index-probe.json); do
+            entry=$(jq -r ".mods[] | select(.id == \"$id\")" .index-probe.json)
+            version=$(echo "$entry" | jq -r .version)
+            file=$(echo "$entry" | jq -r .file)
+            tag="$id-v$version"
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+              echo "$id $version is published; indexing the released jar"
+              gh release download "$tag" --pattern "$file" --dir .index-jars --clobber
+            else
+              echo "$id $version has no tag yet; indexing the jar just built"
+              cp "$id/build/sacred-mod/$file" .index-jars/
+            fi
+          done
+          coderpack index --jars .index-jars
+          rm -rf .index-jars .index-probe.json
           if git diff --quiet -- sacred.mods.repository.json; then
-            echo "the index already matched the jars"
+            echo "the index already described the published jars"
             exit 0
           fi
           git config user.name "github-actions[bot]"
