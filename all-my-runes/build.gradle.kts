@@ -2,7 +2,7 @@ plugins {
     id("dev.ancaria.coderpack")
 }
 
-version = "0.99.0"
+version = "0.99.1"
 
 sacred {
     id = "all-my-runes"

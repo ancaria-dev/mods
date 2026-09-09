@@ -2,7 +2,7 @@ plugins {
     id("dev.ancaria.coderpack")
 }
 
-version = "0.99.0"
+version = "0.99.1"
 
 dependencies {
     // JavaFX with the Windows classifier, which is the jar that carries the

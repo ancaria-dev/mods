@@ -13,10 +13,10 @@ Run these commands from the `mods` repository root:
 gradlew :self-check:assembleSacredMod
 gradlew :self-check:installSacredMod -PsacredDir="C:/Games/..."
 python self-check/verify.py
-java -cp self-check/build/sacred-mod/self-check-0.99.0.jar dev.ancaria.selfcheck.view.Preview
+java -cp self-check/build/sacred-mod/self-check-0.99.1.jar dev.ancaria.selfcheck.view.Preview
 ```
 
-The build writes `self-check/build/sacred-mod/self-check-0.99.0.jar`, and the
+The build writes `self-check/build/sacred-mod/self-check-0.99.1.jar`, and the
 install task copies that jar to `<Sacred Gold>/mods`.
 
 `python self-check/verify.py` needs the built mod jar and Coderpack’s `api` and `zygote`
