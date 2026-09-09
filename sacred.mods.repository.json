@@ -16,8 +16,8 @@
       "source": "all-my-runes",
       "icon": "all-my-runes/icon.png",
       "file": "all-my-runes-0.99.0.jar",
-      "size": 8212,
-      "sha256": "485de45cbf4fa541cdcf6acdbfeb800b136a6b2b7674d197ab253c9635844c9a",
+      "size": 8211,
+      "sha256": "2132e453c24b3c91a957881c2932359b79e44197cafc6a0ab5807d937fac2b26",
       "url": "https://github.com/ancaria-dev/mods/releases/download/all-my-runes-v0.99.0/all-my-runes-0.99.0.jar"
     },
     {
@@ -47,8 +47,8 @@
       "source": "self-check",
       "icon": "self-check/icon.png",
       "file": "self-check-0.99.0.jar",
-      "size": 9373953,
-      "sha256": "624aff29fac6fb897d0453dab9955f5a4d4a666095c23acd8f4aacbbc0155a78",
+      "size": 9373945,
+      "sha256": "437d14d07454884e43a816178f8d3a07a5552c0613ced07e2b9abefecbfb5804",
       "url": "https://github.com/ancaria-dev/mods/releases/download/self-check-v0.99.0/self-check-0.99.0.jar"
     },
     {
