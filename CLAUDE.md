@@ -136,14 +136,27 @@ The first command writes `sacred.mods.repository.json`. The second writes
 nothing and exits with status 1 when the committed file differs from a newly
 generated index.
 
-Neither has to be run by hand for a push to master. CI regenerates the index
-from the jars it just built and commits the result itself, before the release
-step, so a tag always points at a commit whose index describes the jars being
-released. Running `coderpack index` locally and committing it is still correct
-and leaves CI nothing to do, though it usually does not: `self-check` packs a
-jar that comes out a few bytes apart on a developer machine and on the runner,
-so a locally generated index normally differs from the one CI writes. That is
-why the workflow no longer compares. It regenerates.
+Neither has to be run by hand for a push to master. CI writes the index and
+commits it, before the release step, so a tag points at a commit whose index
+describes the jar being released.
+
+What the index has to describe is the jar behind each download URL, not the jar
+a run happened to build. The launcher refuses a download whose sha256 is not the
+one the index published (`registry/install.go`), so the two are not
+interchangeable. A mod whose tag `<id>-v<version>` already exists is therefore
+indexed from the asset on that release, downloaded in the workflow; only a
+version with no tag yet is indexed from the jar just built, which is the jar the
+release step is about to attach to it. Change a mod without raising its version
+and nothing published moves, which is what not raising it asked for.
+
+The staged jars go to `coderpack index --jars` rather than the generated file
+being edited afterwards, so the file is always written by the generator and its
+formatting cannot drift.
+
+Running `coderpack index` locally and committing it is still allowed but rarely
+matches: `self-check` packs a jar that comes out a few bytes apart on a
+developer machine and on the runner. That difference is exactly why the workflow
+no longer compares anything.
 
 On a pull request nothing can be pushed, so there CI only generates the index
 and throws it away. Comparing it would ask a contributor to reproduce the

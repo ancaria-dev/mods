@@ -93,11 +93,12 @@ coderpack index           neu erzeugen
 coderpack index --check   prüfen, ohne etwas zu schreiben
 ```
 
-Die Version anzuheben genügt. Auf `master` erzeugt die CI den Index aus den
-soeben gebauten JAR-Dateien neu und committet ihn, sodass er den JARs nicht
-hinterherhinken kann und niemand an den Befehl denken muss. `coderpack index`
-selbst auszuführen bleibt richtig; die CI schreibt das Ergebnis einfach neu,
-falls die JAR-Datei auf Ihrem Rechner etwas anders ausfällt, was vorkommt.
+Die Version anzuheben genügt. Auf `master` schreibt die CI den Index und
+committet ihn, sodass niemand an den Befehl denken muss. Eine bereits
+veröffentlichte Mod wird aus der JAR-Datei ihres Releases indiziert, eine
+Version ohne Tag aus der soeben gebauten, die gleich veröffentlicht wird. So
+beschreibt die Prüfsumme im Index immer genau die Datei, die hinter der
+Download-URL liegt, und genau die prüft ein Launcher vor der Installation.
 
 Aus einem Pull Request darf nichts gepusht werden, also wird der Index dort nur
 erzeugt und nicht verglichen. Das Erzeugen scheitert weiterhin an einer
