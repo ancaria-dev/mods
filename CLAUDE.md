@@ -185,17 +185,25 @@ the jar version and other build metadata.
 
 ## Versions and releases
 
-Each mod currently has its own `version = "0.99.0"` in
-`<id>/build.gradle.kts`. The plugin and API dependency are also currently
-`0.99.0`. The generated descriptor uses the project version. The API contract
-range is `[1,2)`, which is distinct from the `0.99.0` artifact version.
+Each mod currently has its own `version = "0.99.1"` in
+`<id>/build.gradle.kts`. The plugin and API dependency are pinned separately in
+`gradle/libs.versions.toml` and are a different number. The generated descriptor
+uses the project version. The API contract range is `[1,2)`, which is distinct
+from any artifact version.
 
-For every mod version change, update its `build.gradle.kts`, rebuild the jar,
-run `coderpack index`, and commit the version change with the regenerated
-index. Never reuse a published version for different bytes. `tools/version.ps1`
-does the first step for all four mods at once (it refuses to run if they are
-not already on the same version) but not the rebuild or the index. Those
-still need `assembleSacredMod` and `coderpack index` by hand afterward.
+For every mod version change, update its `build.gradle.kts` and push. CI
+rebuilds, writes the index, and cuts the release. Never reuse a published
+version for different bytes: a change that reaches players is a version change,
+and one that does not raise the version simply stays unpublished.
+
+`tools/version.ps1` moves all four at once and refuses to run if they are not
+already on the same version. It rewrites two shapes and only those: the
+`version = "..."` line in each build script, and the file name
+`self-check-<version>.jar` where README.md, verify.py and Preview.java spell it
+out. It used to replace every occurrence of the old number in those files,
+which also moved verify.py's `CODERPACK = "..."`, the coderpack artifact
+version it resolves api and zygote by. Keep the rules that narrow, not a
+blanket match on the number.
 
 CI creates one GitHub release per mod on `master`, tagged
 `<id>-v<version>`, and uploads `<id>/build/sacred-mod/<file>`. The workflow
