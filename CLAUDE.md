@@ -246,7 +246,7 @@ Self Check also has focused commands:
 
 ```
 python self-check/verify.py
-java -cp self-check/build/sacred-mod/self-check-0.99.0.jar dev.ancaria.selfcheck.view.Preview
+java -cp self-check/build/sacred-mod/self-check-0.99.1.jar dev.ancaria.selfcheck.view.Preview
 ```
 
 `self-check/verify.py` needs the built mod jar plus Coderpack `api` and `zygote`

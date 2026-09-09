@@ -7,8 +7,8 @@
     there is no single source of truth the way there is in the other
     repositories. This script prints all four and only proceeds when they
     already agree, on the assumption that they are being released together as
-    a baseline. self-check's README, verify.py, and Preview.java spell its jar
-    name out by hand and move with it.
+    a baseline. CLAUDE.md, self-check's README, verify.py, and Preview.java
+    spell its jar name out by hand and move with it.
 
     Only two shapes are rewritten, and neither is "every number that looks like
     the current version": the `version = "..."` line in each build script, and
@@ -72,6 +72,7 @@ $targets = @()
 foreach ($mod in $mods) {
     $targets += @{ path = Join-Path $root "$mod/build.gradle.kts"; rules = @($declaration) }
 }
+$targets += @{ path = Join-Path $root 'CLAUDE.md'; rules = @($jarName) }
 $targets += @{ path = Join-Path $root 'self-check/README.md'; rules = @($jarName) }
 $targets += @{ path = Join-Path $root 'self-check/verify.py'; rules = @($jarName) }
 $targets += @{
