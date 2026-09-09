@@ -90,13 +90,16 @@ werden aus dem Artefakt und der Vorlage berechnet.
 
 ```
 coderpack index           neu erzeugen
-coderpack index --check   was die CI ausführt
+coderpack index --check   prüfen, ohne etwas zu schreiben
 ```
 
-Nach einer Versionsänderung muss die Mod neu gebaut und `coderpack index` im
-selben Commit ausgeführt werden. Mit `--check` schreibt das Werkzeug keine
-Datei und beendet sich mit Code 1, falls der gespeicherte Index von den
-gebauten JAR-Dateien abweicht. Eine JAR-Datei, die bei der Mod-Prüfung
+Die Version anzuheben genügt. Auf `master` erzeugt die CI den Index aus den
+soeben gebauten JAR-Dateien neu und committet ihn, sodass er den JARs nicht
+hinterherhinken kann. `coderpack index` im selben Commit selbst auszuführen
+bleibt richtig; dann bleibt der CI nur nichts mehr zu tun. Aus einem Pull
+Request darf nichts gepusht werden, also läuft dort `--check`: das Werkzeug
+schreibt keine Datei und beendet sich mit Code 1, falls der gespeicherte Index
+von den gebauten JAR-Dateien abweicht. Eine JAR-Datei, die bei der Mod-Prüfung
 durchfällt, wird gar nicht erst indiziert.
 
 ## Releases

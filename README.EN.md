@@ -86,20 +86,23 @@ download URL from the artifact and template.
 
 ```
 coderpack index           regenerate it
-coderpack index --check   what CI runs
+coderpack index --check   verify it without writing
 ```
 
-After changing a version, rebuild that mod and run `coderpack index` in the
-same commit. The `--check` command writes nothing and exits with code 1 when
-the committed index differs from the built JARs. Index generation also refuses
-a JAR that fails the mod verifier.
+Raising a version is enough. On `master`, CI regenerates the index from the
+JARs it just built and commits it, so the file cannot fall behind the jars.
+Running `coderpack index` yourself in the same commit is still correct and
+leaves CI nothing to do. On a pull request, where nothing can be pushed, CI
+runs `--check` instead: it writes nothing and exits with code 1 when the
+committed index differs from the built JARs. Index generation also refuses a
+JAR that fails the mod verifier.
 
 ## Releases
 
 Each mod has its own GitHub release and a tag in the form
 `<id>-v<version>`. The release contains that mod's JAR. On `master`, the
-workflow builds all four mods, checks the committed index, and creates a
-release only when the corresponding tag is absent. A run with unchanged
+workflow builds all four mods, regenerates and commits the index, and creates
+a release only when the corresponding tag is absent. A run with unchanged
 versions publishes nothing.
 
 The index records each JAR's URL, size, and SHA-256. Before installation, the

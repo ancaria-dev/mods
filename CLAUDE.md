@@ -26,7 +26,7 @@ default source. The launcher payload contains no mod jars.
 | `all-my-runes/` | All My Runes build, source, README, and icon. |
 | `tools/icons.py` | Pillow script that draws all five icons. It is not part of the build. |
 | `settings.gradle.kts` | One multi-project build that includes all four mods. |
-| `.github/workflows/build.yml` | CI build, verification, index check, and per-mod release workflow. |
+| `.github/workflows/build.yml` | CI build, verification, index regeneration, and per-mod release workflow. |
 
 A multi-mod directory name must equal the mod id. `coderpack index` uses that
 match to set `source` and `icon`. If the names differ, the generated entry has
@@ -134,7 +134,17 @@ coderpack index --check
 
 The first command writes `sacred.mods.repository.json`. The second writes
 nothing and exits with status 1 when the committed file differs from a newly
-generated index. CI runs the check after building all four jars.
+generated index.
+
+Neither has to be run by hand for a push to master. CI regenerates the index
+from the jars it just built and commits the result itself, before the release
+step, so a tag always points at a commit whose index describes the jars being
+released. Running `coderpack index` locally and committing it is still correct
+and leaves CI nothing to do. On a pull request nothing can be pushed, so there
+CI runs `--check` and fails on a mismatch as it always did.
+
+The regeneration commit is made with the workflow token, and a push made with
+that token starts no workflow run of its own, so this does not loop.
 
 The generator verifies every jar first and refuses to index a jar that fails
 the linter. It reads `id`, `name`, `version`, `description`, `api`, optional
@@ -226,7 +236,7 @@ so raising it moves every mod together.
 
 The `coderpack` command line is a different kind of dependency: not a Maven
 coordinate, but the `coderpack-*.zip` asset on an `ancaria-dev/build`
-release, downloaded by CI and used for `coderpack index --check`. `dependencies.json`
+release, downloaded by CI and used for `coderpack index`. `dependencies.json`
 pins the exact release tag CI downloads, never "latest", so a bad `build`
 release cannot break this repository's CI on its own schedule. Bump the pin
 there when there is a reason to move.
