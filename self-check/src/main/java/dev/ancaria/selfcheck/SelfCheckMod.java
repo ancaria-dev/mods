@@ -33,7 +33,7 @@ import javafx.application.Platform;
  * <p>Two questions get answered by running this: does each event reach a mod at
  * all, and for the events a mod may rewrite, does the rewrite reach the game.
  * The second one is why the mutating scenarios change something rather than only
- * reporting -- an event that arrives and is then ignored proves half a pipe.
+ * reporting: an event that arrives and is then ignored proves half a pipe.
  *
  * <p>The changes are deliberately the smallest ones that are still real. One
  * point of damage, one gold, one point of experience. Where there is no harmless
@@ -142,7 +142,7 @@ public final class SelfCheckMod implements SacredMod {
 
     @Subscribe
     public void onMobHit(MobHit event) {
-        // MobDeath extends MobHit, so this fires for both; the death handler
+        // MobDeath extends MobHit, so this fires for both. The death handler
         // below settles its own scenario.
         model.pass(Checks.MOB_HIT, event.typeName() + " " + event.hp() + " → " + event.next());
     }

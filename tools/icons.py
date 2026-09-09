@@ -1,7 +1,7 @@
 """Draws the icons the registry index points at.
 
-A mod's icon is optional -- a launcher that finds none draws its own mark
-instead -- so these exist to be looked at rather than to be required. They are
+A mod's icon is optional, and a launcher that finds none draws its own mark
+instead, so these exist to be looked at rather than to be required. They are
 drawn rather than painted: flat shapes in the launcher's own palette, at four
 times the size and then scaled down, which is the cheapest antialiasing there
 is and quite enough for something shown at 64 pixels.

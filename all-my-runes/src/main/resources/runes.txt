@@ -1,8 +1,8 @@
-# all-my-runes -- which rune belongs to which class.
+# all-my-runes: which rune belongs to which class.
 #
 # One `CLASS RUNE` per line; # starts a comment.  A rune listed here for
 # a class other than yours is swapped, at pickup, for a random rune that
-# is yours.  A rune that is NOT listed at all is left alone -- silence
+# is yours.  A rune that is NOT listed at all is left alone, and silence
 # means "unknown", never "not yours".
 #
 # The 79 entries below were derived from the type names in
@@ -11,7 +11,7 @@
 #
 # The other 61 are spell runes whose names carry no class at all.
 # They are listed at the bottom, commented out with `?`.  Replace the `?`
-# with a class name and they start working -- that is the only part of
+# with a class name and they start working.  That is the only part of
 # this file that needs a human.
 #
 # Classes: SERAPHIM GLADIATOR BATTLEMAGE DARK_ELF WOOD_ELF VAMPIRESS

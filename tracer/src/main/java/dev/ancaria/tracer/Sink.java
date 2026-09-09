@@ -14,7 +14,7 @@ import java.util.List;
  *
  * <p>It flushes per batch rather than per line. A trace is usually read after
  * something took the game with it, so what is already on disk has to be
- * complete up to a fraction of a second ago -- but not at the cost of a flush
+ * complete up to a fraction of a second ago, but not at the cost of a flush
  * for every hit during combat.
  */
 final class Sink {

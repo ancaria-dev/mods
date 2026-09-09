@@ -5,13 +5,13 @@
 .DESCRIPTION
     Each mod carries its own `version = "..."` in its build.gradle.kts, so
     there is no single source of truth the way there is in the other
-    repositories -- this script prints all four and only proceeds when they
+    repositories. This script prints all four and only proceeds when they
     already agree, on the assumption that they are being released together as
     a baseline. self-check's README, verify.py, and Preview.java spell its jar
     name out by hand and move with it.
 
     This does not rebuild the jars or touch sacred.mods.repository.json.
-    Run `coderpack index` afterward and commit the regenerated file -- the
+    Run `coderpack index` afterward and commit the regenerated file, the
     same step every mod version bump has always needed.
 
     gradle/libs.versions.toml's `coderpack` entry is a different number: the
@@ -61,7 +61,7 @@ foreach ($path in $targets) {
     $text = Get-Content -Path $path -Raw
     $new = [regex]::Replace($text, $pattern, $Version)
     if ($new -eq $text) {
-        Write-Warning "$current not found in $path -- left untouched"
+        Write-Warning "$current not found in $path, left untouched"
         continue
     }
     Set-Content -Path $path -Value $new -NoNewline

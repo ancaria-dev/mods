@@ -1,7 +1,7 @@
 # Who this repository is, for a launcher that has been pointed at it.
 #
 # This is the hand-written half. The other half, sacred.mods.repository.json,
-# is generated from this file and from the jars that were built -- every field
+# is generated from this file and from the jars that were built. Every field
 # describing a mod is copied out of the descriptor inside its jar, so the
 # version a player is offered is the version in the jar they get:
 #

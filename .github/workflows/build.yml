@@ -45,7 +45,7 @@ jobs:
           echo "$PWD/$(echo .coderpack/coderpack-*/bin)" >> "$GITHUB_PATH"
 
       # The index is generated from the built jars, and it is committed. This
-      # says the committed one is still what the jars say -- a version bumped
+      # says the committed one is still what the jars say. A version bumped
       # without regenerating it would otherwise offer players the old jar under
       # the new number.
       - name: The index agrees with the jars

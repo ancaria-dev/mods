@@ -20,10 +20,10 @@ import java.util.Map;
  * from there afterwards, so completing it does not mean rebuilding a mod.
  *
  * <p>This says only WHOSE a rune is. What a rune becomes is not built from
- * here -- see {@link Mine} -- because the table names types, and a type is only
+ * here (see {@link Mine}) because the table names types, and a type is only
  * a rune's name.
  *
- * <p>The seed covers 79 of the game's 140 runes -- the ones whose type name
+ * <p>The seed covers 79 of the game's 140 runes: the ones whose type name
  * says the class outright, through a {@code DWR_/DEM_/DE_/VL_/ARROW_} prefix or
  * a {@code _SERA/_GLAD/_DELF/_VAMP/_WELF} suffix. The remaining 61 are spell
  * runes whose names carry no class, and they are left commented out. A rune
@@ -93,7 +93,7 @@ final class Owners {
         }
     }
 
-    /** Null when nothing is known about this type -- including "not a rune". */
+    /** Null when nothing is known about this type, including "not a rune". */
     HeroClass ownerOf(int typeId) {
         return owner.get(typeId);
     }

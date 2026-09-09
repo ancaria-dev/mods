@@ -11,7 +11,7 @@ dependencies {
     // coming, so anything not in here does not exist.
     //
     // 21 rather than the newest: JavaFX 26 is compiled to class file 68, and the
-    // loader targets Java 21, so `verifySacredMod` says so -- correctly. A
+    // loader targets Java 21, so `verifySacredMod` says so, correctly. A
     // player on exactly 21 could not load the window. The LTS line is built for
     // 17 and this window uses nothing newer than that.
     val fx = "21.0.9"

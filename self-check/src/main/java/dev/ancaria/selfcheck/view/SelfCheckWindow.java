@@ -25,7 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
- * The window. It reads the view model and writes nothing back -- there is
+ * The window. It reads the view model and writes nothing back, and there is
  * nothing to write back, since the game is what drives every value here.
  */
 public final class SelfCheckWindow {

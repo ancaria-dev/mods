@@ -11,8 +11,8 @@ import java.util.Map;
  * <p>Nothing here is a list of potions. The table is derived from the type
  * names the running game reports, by the one rule the names already encode:
  * a size word swapped for the largest one. Sacred has two potion families and
- * they name their sizes differently -- {@code SMALL/MEDIUM/LARGE_<colour>} and
- * {@code <kind>_MINOR/MAJOR/FULL} -- so both spellings are handled, and a
+ * they name their sizes differently ({@code SMALL/MEDIUM/LARGE_<colour>} and
+ * {@code <kind>_MINOR/MAJOR/FULL}) so both spellings are handled, and a
  * colour or kind nobody has seen yet is picked up for free.
  */
 final class Upgrades {

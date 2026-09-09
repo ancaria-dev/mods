@@ -70,7 +70,7 @@ def stage():
     for stale in MODS.glob("*.jar"):
         stale.unlink()
     if not JAR.is_file():
-        raise SystemExit(f"{JAR} is missing -- run gradlew assembleSacredMod")
+        raise SystemExit(f"{JAR} is missing. Run gradlew assembleSacredMod")
     (MODS / JAR.name).write_bytes(JAR.read_bytes())
 
 

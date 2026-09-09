@@ -18,7 +18,7 @@ import dev.ancaria.coderpack.api.event.Pickup;
  * combat art nobody has a table for. A rune you picked up carries all of that
  * already paired up correctly, so it is the template.
  *
- * <p>Which means the mod is quiet until it has seen one of your runes -- pick
+ * <p>Which means the mod is quiet until it has seen one of your runes. Pick
  * up a single rune of your own class and it starts working. Quiet is the right
  * failure here: assembling a rune out of half-known fields is exactly how the
  * first version destroyed the runes it could not recognise. An unlisted rune is
@@ -38,8 +38,8 @@ public final class RunesMod implements SacredMod {
     }
 
     /**
-     * The Vampiress has two class ids -- 6 for the knight and 7 for the vampire
-     * form -- and they are the same character with the same runes. Without this
+     * The Vampiress has two class ids, 6 for the knight and 7 for the vampire
+     * form, and they are the same character with the same runes. Without this
      * she turns into a vampire and every rune she owns starts reading as
      * somebody else's.
      */
@@ -55,7 +55,7 @@ public final class RunesMod implements SacredMod {
         }
         try {
             // Reading the table asks the game for type ids, so it waits for a
-            // world -- and for an ordinary event, never a veto.
+            // world, and for an ordinary event, never a veto.
             owners = Owners.load(context.gameDir().resolve("mods"), context.game());
             context.log(owners.known() + (owners.known() == 1 ? " rune is known" : " runes are known")
                         + (owners.unresolved() > 0

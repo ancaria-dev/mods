@@ -13,7 +13,7 @@ import java.util.Set;
  *
  * <p>These are the templates a foreign rune is turned into, and taking them
  * from real runes rather than assembling one from a type id is the whole
- * point. A rune's type is only its name; what it upgrades lives in its
+ * point. A rune's type is only its name. What it upgrades lives in its
  * modifier list, and the id there is a combat art nobody has a table for. A
  * rune that was picked up carries a correct pairing of all of it, so copying
  * one wholesale needs no such table.
@@ -28,7 +28,7 @@ final class Mine {
     private final Set<Integer> types = new HashSet<>();
     private final Random random = new Random();
 
-    /** Remembers one rune per type -- the same rune twice teaches nothing. */
+    /** Remembers one rune per type. The same rune twice teaches nothing. */
     void remember(Item rune) {
         if (types.add(rune.typeId())) {
             templates.add(rune);

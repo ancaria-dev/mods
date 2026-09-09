@@ -8,7 +8,7 @@ import java.util.List;
  *
  * <p>The point is that {@link #add} never blocks and never touches a file: it
  * runs on SAL's dispatch thread, and for a vetoable event that thread is
- * holding the game still. Writing from there -- even to a buffered stream --
+ * holding the game still. Writing from there, even to a buffered stream,
  * would put disk latency inside the game's frame.
  *
  * <p>When the writer falls behind, the oldest lines are overwritten rather than
