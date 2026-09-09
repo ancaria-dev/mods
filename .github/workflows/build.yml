@@ -75,11 +75,17 @@ jobs:
           # own, so this cannot loop back into itself.
           git push origin "HEAD:$GITHUB_REF_NAME"
 
-      # Nothing may be pushed from a pull request, so there the check stays what
-      # it was: it fails, and says which command puts it right.
-      - name: The index agrees with the jars
+      # Nothing may be pushed from a pull request, so there the index is only
+      # generated, never compared. Comparing it would ask a contributor to
+      # reproduce this runner's jars byte for byte, and self-check does not:
+      # its jar came out eight bytes apart on a developer machine and on the
+      # runner, which is what made the old --check step fail on work that was
+      # perfectly correct. Generating still fails on the things a pull request
+      # can genuinely get wrong: an unreadable registry.toml, a duplicate mod
+      # id, a jar the linter refuses.
+      - name: The index can be generated from the jars
         if: github.ref != 'refs/heads/master'
-        run: coderpack index --check
+        run: coderpack index
 
       # One release per mod, tagged <id>-v<version>, which is exactly the URL
       # the index publishes. Nothing is released twice: the tag is the record,
