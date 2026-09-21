@@ -21,7 +21,7 @@ import dev.ancaria.coderpack.api.event.Position;
 import dev.ancaria.coderpack.api.event.Skill;
 import dev.ancaria.coderpack.api.event.Stored;
 import dev.ancaria.coderpack.api.event.Unknown;
-import dev.ancaria.coderpack.api.event.Veto;
+import dev.ancaria.coderpack.api.event.Amount;
 import dev.ancaria.coderpack.api.event.World;
 import dev.ancaria.selfcheck.view.SelfCheckWindow;
 import dev.ancaria.selfcheck.view.Ui;
@@ -65,21 +65,20 @@ public final class SelfCheckMod implements SacredMod {
     // ---- session ---------------------------------------------------------
 
     /**
-     * Whether another mod has already written this field of this event.
+     * Whether another mod has already decided this number.
      *
-     * <p>Every mutating check here stands down when one has. Self Check exists
-     * to prove that a rewrite reaches the game, and a probe that overwrites
-     * somebody else's real decision proves the opposite of what it claims: the
-     * rewrites are a map, so the last writer wins and the mod the player
-     * actually installed for its effect is the one that loses.
+     * <p>Every deciding check here stands down when one has. Self Check exists
+     * to prove that a decision reaches the game, and a probe that overrides
+     * somebody else's real one proves the opposite of what it claims.
      *
-     * <p>The rewrite map is the only honest way to ask. An event's getters
-     * return the values that came off the wire and never the pending changes,
-     * so {@code event.next()} inside a listener is the game's number, not the
-     * one the mod before this listener asked for.
+     * <p>This used to have to read a map of pending rewrites, because an
+     * event's getters answered with the number off the wire and never with
+     * what the mod before had asked for. Now {@code value()} is the fold and
+     * {@code initial()} is the wire, so the question is just whether they
+     * still agree.
      */
-    private static boolean taken(Veto event, String key) {
-        return event.rewrites().containsKey(key);
+    private static boolean taken(Amount event) {
+        return event.value() != event.initial();
     }
 
     @Subscribe
@@ -132,25 +131,25 @@ public final class SelfCheckMod implements SacredMod {
     // ---- health ----------------------------------------------------------
 
     @Subscribe
-    public void onDamage(Damage event) {
-        long before = event.next();
+    public Damage.Mutation onDamage(Damage event) {
+        long before = event.value();
         model.event(event.kind() + " " + event.hp() + " → " + before
                     + " (" + event.damage() + " damage)");
         if (!"damage".equals(event.kind())) {
-            return;
+            return Damage.Mutation.none();
         }
         long softened = Math.min(before + 1, event.maxHp());
         if (softened == before) {
             model.pass(Checks.HEALTH, "Nothing to soften at " + before + " HP");
-            return;
+            return Damage.Mutation.none();
         }
-        if (taken(event, "next")) {
+        if (taken(event)) {
             model.pass(Checks.HEALTH, "Another mod is already deciding this hit");
-            return;
+            return Damage.Mutation.none();
         }
-        event.next(softened);
         model.change("Damage softened: " + before + " → " + softened);
         model.pass(Checks.HEALTH, "Kept 1 HP back (" + before + " → " + softened + ")");
+        return Damage.Mutation.of(softened);
     }
 
     @Subscribe
@@ -178,55 +177,56 @@ public final class SelfCheckMod implements SacredMod {
     // ---- progression -----------------------------------------------------
 
     @Subscribe
-    public void onGold(Gold event) {
-        long delta = event.delta();
+    public Gold.Mutation onGold(Gold event) {
+        long delta = event.value();
         model.event((event.spending() ? "Spent " : "Found ") + Math.abs(delta)
                     + " gold, had " + event.current());
         if (event.spending()) {
-            return;
+            return Gold.Mutation.none();
         }
-        if (taken(event, "delta")) {
+        if (taken(event)) {
             model.pass(Checks.GOLD, "Another mod is already deciding this gain");
-            return;
+            return Gold.Mutation.none();
         }
-        event.delta(delta + 1);
         model.change("Gold delta " + delta + " → " + (delta + 1));
         model.pass(Checks.GOLD, "Asked for one more than the game offered");
+        return Gold.Mutation.of(delta + 1);
     }
 
     @Subscribe
-    public void onExperience(Experience event) {
-        long total = event.next();
-        if (taken(event, "next")) {
+    public Experience.Mutation onExperience(Experience event) {
+        long total = event.value();
+        if (taken(event)) {
             model.pass(Checks.EXPERIENCE, "Another mod is already deciding this award");
-            return;
+            return Experience.Mutation.none();
         }
-        event.next(total + 1);
         model.change("Experience total " + total + " → " + (total + 1));
         model.pass(Checks.EXPERIENCE, "+" + event.gain() + " XP; asked for one more");
+        return Experience.Mutation.of(total + 1);
     }
 
     @Subscribe
-    public void onSkill(Skill event) {
-        if (taken(event, "next")) {
+    public Skill.Mutation onSkill(Skill event) {
+        if (taken(event)) {
             model.pass(Checks.SKILL, "Slot " + event.slot() + "; another mod is setting it");
-            return;
+            return Skill.Mutation.none();
         }
-        // Same value on purpose. A skill point is not ours to spend.
-        event.next(event.next());
-        model.pass(Checks.SKILL, "Slot " + event.slot() + " → " + event.next()
+        // Same value on purpose. A skill point is not ours to spend, and a
+        // mutation back to the number that arrived says nothing on the wire.
+        model.pass(Checks.SKILL, "Slot " + event.slot() + " → " + event.value()
                                  + "; answered with the same value");
+        return Skill.Mutation.of(event.value());
     }
 
     @Subscribe
-    public void onAttribute(Attribute event) {
-        if (taken(event, "next")) {
+    public Attribute.Mutation onAttribute(Attribute event) {
+        if (taken(event)) {
             model.pass(Checks.ATTRIBUTE, event.name() + "; another mod is setting it");
-            return;
+            return Attribute.Mutation.none();
         }
-        event.next(event.next());
-        model.pass(Checks.ATTRIBUTE, event.name() + " → " + event.next()
+        model.pass(Checks.ATTRIBUTE, event.name() + " → " + event.value()
                                      + "; answered with the same value");
+        return Attribute.Mutation.of(event.value());
     }
 
     @Subscribe
@@ -243,17 +243,12 @@ public final class SelfCheckMod implements SacredMod {
         if (!event.player()) {
             return;
         }
-        // The one that used to break other mods. old-huge-potions turns a small
-        // potion into a large one and all-my-runes copies a rune onto another,
-        // both by writing this same field, and this probe ran last and put the
-        // original back over the top of them.
-        if (taken(event, "type")) {
-            model.pass(Checks.PICKUP, name + "; another mod is retyping it, left alone");
-            return;
-        }
-        // Retyping to the type it already has: the verdict travels the whole way
-        // and the item is exactly what it was.
-        event.type(event.item().typeId());
+        // This used to be the one that broke other mods: retyping was part of
+        // the verdict, so this probe ran last and put the original back over
+        // whatever old-huge-potions or all-my-runes had asked for. Retyping
+        // lives on Game now, and what a pickup decides is which object it is,
+        // so answering with the object the game already named changes nothing
+        // and cannot overwrite anybody.
         model.pass(Checks.PICKUP, name + "; answered without changing it");
     }
 

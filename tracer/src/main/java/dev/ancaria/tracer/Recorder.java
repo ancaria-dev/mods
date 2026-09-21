@@ -4,7 +4,8 @@ import dev.ancaria.coderpack.api.Priority;
 import dev.ancaria.coderpack.api.Subscribe;
 import dev.ancaria.coderpack.api.event.Event;
 import dev.ancaria.coderpack.api.event.Unknown;
-import dev.ancaria.coderpack.api.event.Veto;
+import dev.ancaria.coderpack.api.event.Amount;
+import dev.ancaria.coderpack.api.event.Decision;
 import dev.ancaria.coderpack.api.event.World;
 
 import java.time.LocalTime;
@@ -63,16 +64,24 @@ final class Recorder {
         return event.getClass().getSimpleName();
     }
 
-    /** What the mods ahead of us decided, if this was a vetoable event. */
+    /**
+     * What the mods ahead of us decided, if this was a decidable event.
+     *
+     * <p>A tracer is MONITOR, so it runs last and reads the fold rather than a
+     * list of pending writes. That is the whole reason this is trustworthy now:
+     * value() is what the game is about to be told, not what it proposed.
+     */
     private static void verdict(Event event, StringBuilder line) {
-        if (!(event instanceof Veto veto)) {
+        if (!(event instanceof Decision decision)) {
             return;
         }
-        if (veto.canceled()) {
-            line.append("   → canceled");
+        if (decision.vetoed()) {
+            line.append("   → vetoed");
             return;
         }
-        veto.rewrites().forEach((key, value) ->
-                line.append("   → ").append(key).append('=').append(value));
+        if (event instanceof Amount amount && amount.value() != amount.initial()) {
+            line.append("   → ").append(amount.initial())
+                .append(" → ").append(amount.value());
+        }
     }
 }

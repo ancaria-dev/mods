@@ -55,7 +55,10 @@ public final class PotionsMod implements SacredMod {
         if (better == 0) {
             return;
         }
-        event.type(better);
+        // Retyping edits the object in the world and outlives this pickup,
+        // so it is something done to the game rather than a verdict the
+        // game is waiting on.
+        context.game().retype(item.ref(), better);
         context.log(item.typeName() + " → " + upgrades.name(better));
     }
 }

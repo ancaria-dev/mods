@@ -90,7 +90,7 @@ public final class RunesMod implements SacredMod {
                         + "one of your own to copy");
             return;
         }
-        event.copy(template);
+        context.game().reshape(item.ref(), template);
         context.log("Changed " + item.typeName() + " from a " + owner + " rune to "
                     + template.typeName());
     }
