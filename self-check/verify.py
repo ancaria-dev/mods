@@ -17,7 +17,7 @@ import time
 HERE = pathlib.Path(__file__).resolve().parent
 M2 = pathlib.Path.home() / ".m2" / "repository" / "dev" / "ancaria" / "coderpack"
 CODERPACK = "0.99.0"
-JAR = HERE / "build" / "sacred-mod" / "self-check-0.99.1.jar"
+JAR = HERE / "build" / "sacred-mod" / "self-check-0.99.2.jar"
 MODS = HERE / "build" / "verify-mods"
 
 # The host's half of the two commands the mod makes at startup.
