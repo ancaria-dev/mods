@@ -1,8 +1,12 @@
-# One number for the coderpack toolchain, referenced everywhere it appears
-# instead of being retyped in the root build script and in every mod's
-# `sacred { apiVersion = ... }`. Bump it here and every consumer moves together.
+# Two numbers, because two repositories publish the toolchain and they do not
+# move together. `plugin` is the Gradle plugin, the linter and the `coderpack`
+# command line, released by `ancaria-dev/build`. `api` is the artifact a mod
+# compiles against, released by `ancaria-dev/coderpack`. They used to be one
+# entry, which was true only while the two repositories happened to be on the
+# same number.
 [versions]
-coderpack = "0.99.0"
+plugin = "0.101.0"
+api = "0.102.0"
 
 [plugins]
-coderpack = { id = "dev.ancaria.coderpack", version.ref = "coderpack" }
+coderpack = { id = "dev.ancaria.coderpack", version.ref = "plugin" }

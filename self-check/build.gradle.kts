@@ -2,7 +2,7 @@ plugins {
     id("dev.ancaria.coderpack")
 }
 
-version = "0.99.2"
+version = "0.100.0"
 
 dependencies {
     // JavaFX with the Windows classifier, which is the jar that carries the
@@ -48,6 +48,6 @@ sacred {
     // The plugin adds the API as compileOnly at this version. The zygote has it
     // already, and a second copy inside the jar would be a different class with
     // the same name.
-    apiVersion = libs.versions.coderpack.get()
+    apiVersion = libs.versions.api.get()
     installTo = layout.dir(providers.gradleProperty("sacredDir").map { file("$it/mods") })
 }

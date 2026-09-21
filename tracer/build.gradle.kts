@@ -2,7 +2,7 @@ plugins {
     id("dev.ancaria.coderpack")
 }
 
-version = "0.99.1"
+version = "0.100.0"
 
 sacred {
     id = "tracer"
@@ -16,6 +16,6 @@ sacred {
     // No conflicts, and there cannot be any: every listener in here is a
     // MONITOR one, so the loader drops any rewrite it tried to make. A mod that
     // can only watch cannot disagree with anything.
-    apiVersion = libs.versions.coderpack.get()
+    apiVersion = libs.versions.api.get()
     installTo = layout.dir(providers.gradleProperty("sacredDir").map { file("$it/mods") })
 }

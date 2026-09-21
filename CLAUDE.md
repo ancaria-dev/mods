@@ -300,10 +300,14 @@ without a game session.
 
 This build does not read sibling source directories. The Gradle plugin and the
 API resolve from the Gradle Plugin Portal and Maven Central, per
-`settings.gradle.kts`. `gradle/libs.versions.toml` holds the one `coderpack`
-version number both the root `build.gradle.kts` (`alias(libs.plugins.coderpack)`)
-and every mod's `sacred { apiVersion = libs.versions.coderpack.get() }` read,
-so raising it moves every mod together.
+`settings.gradle.kts`. `gradle/libs.versions.toml` holds two numbers, and two
+rather than one because two repositories publish them and they do not move
+together: `plugin` is the Gradle plugin and linter from `ancaria-dev/build`,
+read by the root `build.gradle.kts` as `alias(libs.plugins.coderpack)`, and
+`api` is the artifact from `ancaria-dev/coderpack`, read by every mod as
+`sacred { apiVersion = libs.versions.api.get() }`. They were one entry while
+the two repositories happened to be on the same number, which stopped being
+true.
 
 The `coderpack` command line is a different kind of dependency: not a Maven
 coordinate, but the `coderpack-*.zip` asset on an `ancaria-dev/build`
