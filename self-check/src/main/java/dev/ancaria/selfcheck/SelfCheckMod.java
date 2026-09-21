@@ -149,7 +149,7 @@ public final class SelfCheckMod implements SacredMod {
         }
         model.change("Damage softened: " + before + " → " + softened);
         model.pass(Checks.HEALTH, "Kept 1 HP back (" + before + " → " + softened + ")");
-        return Damage.Mutation.of(softened);
+        return Damage.Mutation.change(softened);
     }
 
     @Subscribe
@@ -190,7 +190,7 @@ public final class SelfCheckMod implements SacredMod {
         }
         model.change("Gold delta " + delta + " → " + (delta + 1));
         model.pass(Checks.GOLD, "Asked for one more than the game offered");
-        return Gold.Mutation.of(delta + 1);
+        return Gold.Mutation.change(delta + 1);
     }
 
     @Subscribe
@@ -202,7 +202,7 @@ public final class SelfCheckMod implements SacredMod {
         }
         model.change("Experience total " + total + " → " + (total + 1));
         model.pass(Checks.EXPERIENCE, "+" + event.gain() + " XP; asked for one more");
-        return Experience.Mutation.of(total + 1);
+        return Experience.Mutation.change(total + 1);
     }
 
     @Subscribe
@@ -215,7 +215,7 @@ public final class SelfCheckMod implements SacredMod {
         // mutation back to the number that arrived says nothing on the wire.
         model.pass(Checks.SKILL, "Slot " + event.slot() + " → " + event.value()
                                  + "; answered with the same value");
-        return Skill.Mutation.of(event.value());
+        return Skill.Mutation.change(event.value());
     }
 
     @Subscribe
@@ -226,7 +226,7 @@ public final class SelfCheckMod implements SacredMod {
         }
         model.pass(Checks.ATTRIBUTE, event.name() + " → " + event.value()
                                      + "; answered with the same value");
-        return Attribute.Mutation.of(event.value());
+        return Attribute.Mutation.change(event.value());
     }
 
     @Subscribe
