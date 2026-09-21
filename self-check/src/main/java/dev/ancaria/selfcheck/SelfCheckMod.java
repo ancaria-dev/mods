@@ -21,6 +21,7 @@ import dev.ancaria.coderpack.api.event.Position;
 import dev.ancaria.coderpack.api.event.Skill;
 import dev.ancaria.coderpack.api.event.Stored;
 import dev.ancaria.coderpack.api.event.Unknown;
+import dev.ancaria.coderpack.api.event.Veto;
 import dev.ancaria.coderpack.api.event.World;
 import dev.ancaria.selfcheck.view.SelfCheckWindow;
 import dev.ancaria.selfcheck.view.Ui;
@@ -62,6 +63,24 @@ public final class SelfCheckMod implements SacredMod {
     }
 
     // ---- session ---------------------------------------------------------
+
+    /**
+     * Whether another mod has already written this field of this event.
+     *
+     * <p>Every mutating check here stands down when one has. Self Check exists
+     * to prove that a rewrite reaches the game, and a probe that overwrites
+     * somebody else's real decision proves the opposite of what it claims: the
+     * rewrites are a map, so the last writer wins and the mod the player
+     * actually installed for its effect is the one that loses.
+     *
+     * <p>The rewrite map is the only honest way to ask. An event's getters
+     * return the values that came off the wire and never the pending changes,
+     * so {@code event.next()} inside a listener is the game's number, not the
+     * one the mod before this listener asked for.
+     */
+    private static boolean taken(Veto event, String key) {
+        return event.rewrites().containsKey(key);
+    }
 
     @Subscribe
     public void onWorld(World event) {
@@ -125,6 +144,10 @@ public final class SelfCheckMod implements SacredMod {
             model.pass(Checks.HEALTH, "Nothing to soften at " + before + " HP");
             return;
         }
+        if (taken(event, "next")) {
+            model.pass(Checks.HEALTH, "Another mod is already deciding this hit");
+            return;
+        }
         event.next(softened);
         model.change("Damage softened: " + before + " → " + softened);
         model.pass(Checks.HEALTH, "Kept 1 HP back (" + before + " → " + softened + ")");
@@ -162,6 +185,10 @@ public final class SelfCheckMod implements SacredMod {
         if (event.spending()) {
             return;
         }
+        if (taken(event, "delta")) {
+            model.pass(Checks.GOLD, "Another mod is already deciding this gain");
+            return;
+        }
         event.delta(delta + 1);
         model.change("Gold delta " + delta + " → " + (delta + 1));
         model.pass(Checks.GOLD, "Asked for one more than the game offered");
@@ -170,6 +197,10 @@ public final class SelfCheckMod implements SacredMod {
     @Subscribe
     public void onExperience(Experience event) {
         long total = event.next();
+        if (taken(event, "next")) {
+            model.pass(Checks.EXPERIENCE, "Another mod is already deciding this award");
+            return;
+        }
         event.next(total + 1);
         model.change("Experience total " + total + " → " + (total + 1));
         model.pass(Checks.EXPERIENCE, "+" + event.gain() + " XP; asked for one more");
@@ -177,6 +208,10 @@ public final class SelfCheckMod implements SacredMod {
 
     @Subscribe
     public void onSkill(Skill event) {
+        if (taken(event, "next")) {
+            model.pass(Checks.SKILL, "Slot " + event.slot() + "; another mod is setting it");
+            return;
+        }
         // Same value on purpose. A skill point is not ours to spend.
         event.next(event.next());
         model.pass(Checks.SKILL, "Slot " + event.slot() + " → " + event.next()
@@ -185,6 +220,10 @@ public final class SelfCheckMod implements SacredMod {
 
     @Subscribe
     public void onAttribute(Attribute event) {
+        if (taken(event, "next")) {
+            model.pass(Checks.ATTRIBUTE, event.name() + "; another mod is setting it");
+            return;
+        }
         event.next(event.next());
         model.pass(Checks.ATTRIBUTE, event.name() + " → " + event.next()
                                      + "; answered with the same value");
@@ -202,6 +241,14 @@ public final class SelfCheckMod implements SacredMod {
         String name = event.item().typeName();
         model.event("Picking up " + name);
         if (!event.player()) {
+            return;
+        }
+        // The one that used to break other mods. old-huge-potions turns a small
+        // potion into a large one and all-my-runes copies a rune onto another,
+        // both by writing this same field, and this probe ran last and put the
+        // original back over the top of them.
+        if (taken(event, "type")) {
+            model.pass(Checks.PICKUP, name + "; another mod is retyping it, left alone");
             return;
         }
         // Retyping to the type it already has: the verdict travels the whole way
