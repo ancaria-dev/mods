@@ -38,18 +38,17 @@
     {
       "id": "self-check",
       "name": "Self Check",
-      "version": "0.99.1",
+      "version": "0.99.2",
       "description": "Shows every event delivered by the loader and tests which events a mod can rewrite.",
       "api": "[1,2)",
       "authors": ["MairwunNx (Pavel Erokhin)"],
       "website": "https://ancaria.dev",
-      "conflicts": ["old-huge-potions", "all-my-runes"],
       "source": "self-check",
       "icon": "self-check/icon.png",
-      "file": "self-check-0.99.1.jar",
-      "size": 9373953,
-      "sha256": "8912fe23aca7e0ffa33afed50bbca8ca085c1ffeb79b3bb3e97ed26994d3b8a7",
-      "url": "https://github.com/ancaria-dev/mods/releases/download/self-check-v0.99.1/self-check-0.99.1.jar"
+      "file": "self-check-0.99.2.jar",
+      "size": 9374319,
+      "sha256": "19db05b41cdb55d2ca5949c9fbca8c7461b16a06cd5564e8d12732c1a95cacd4",
+      "url": "https://github.com/ancaria-dev/mods/releases/download/self-check-v0.99.2/self-check-0.99.2.jar"
     },
     {
       "id": "tracer",
