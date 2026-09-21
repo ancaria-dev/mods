@@ -204,8 +204,13 @@ the jar version and other build metadata.
 
 ## Versions and releases
 
-Each mod currently has its own `version = "0.99.1"` in
-`<id>/build.gradle.kts`. The plugin and API dependency are pinned separately in
+Each mod has its own `version` in `<id>/build.gradle.kts`, and they do not
+have to agree. `self-check` is on `0.99.2` and the other three on `0.99.1`,
+because the pickup probe was fixed in that one mod and republishing three
+unchanged jars to keep a number tidy is not a reason to publish anything.
+`tools/version.ps1` refuses to run while they differ, which is the script
+working as designed rather than a state to undo: align them by hand the next
+time all four genuinely move together. The plugin and API dependency are pinned separately in
 `gradle/libs.versions.toml` and are a different number. The generated descriptor
 uses the project version. The API contract range is `[1,2)`, which is distinct
 from any artifact version.
