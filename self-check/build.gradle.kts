@@ -37,13 +37,13 @@ sacred {
     website = "https://ancaria.dev"
     repository = "https://github.com/ancaria-dev/mods"
 
-    // Both of these rewrite an item at pickup, and so does this one: it answers
-    // every pickup with the type the item already had, to prove the verdict
-    // travels. Whichever listener runs last decides, so beside either of them
-    // this mod either reports a lie or undoes their work. A diagnostic belongs
-    // on its own.
-    conflictsWith("old-huge-potions")
-    conflictsWith("all-my-runes")
+    // No conflicts declared, deliberately. This used to name old-huge-potions
+    // and all-my-runes, because all three write the item type at pickup and
+    // the last listener won: this one ran last and put the original type back
+    // over their work. It now stands down whenever another mod has already
+    // written the field it was about to probe, so there is nothing left to
+    // declare. Do not put them back without first making that probe unsafe
+    // again.
 
     // The plugin adds the API as compileOnly at this version. The zygote has it
     // already, and a second copy inside the jar would be a different class with
