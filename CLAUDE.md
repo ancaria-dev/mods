@@ -41,7 +41,7 @@ JavaFX window. `SelfCheckMod` owns event subscriptions and the two off-thread
 `Game` probes. `Checks` owns the scenario catalogue. The `model`, `viewmodel`,
 and `view` packages own data, observable state, and the read-only window.
 
-Vetoable checks exercise the return path. Damage preserves 1 extra HP when
+Deciding checks exercise the return path. Damage preserves 1 extra HP when
 possible. Gold gains and experience totals increase by 1. Skill, attribute,
 and player-pickup verdicts return the current value. Gold spending and
 non-player pickups remain unchanged.
@@ -78,15 +78,15 @@ mapping from names returned by the running game. Do not add hard-coded potion
 ids or a fixed potion list.
 
 Build the table after the first `Hero` event, when a world exists, and never
-from a vetoable callback. The supported patterns are
+from a deciding callback. The supported patterns are
 `SMALL` or `MEDIUM` to `LARGE`, and `MINOR` or `MAJOR` to `FULL`. Missing
 targets, already-large potions, unmatched names, and non-player pickups stay
 unchanged.
 
-The current implementation rewrites only the item type. It changes the name
-and appearance but does not copy the larger potion's price or modifiers. Its
-effect therefore remains the original potion's effect. Do not describe this
-version as restoring full-size healing behavior.
+The current implementation calls `Game.retype` and changes only the item type.
+It changes the name and appearance but does not copy the larger potion's price
+or modifiers. Its effect therefore remains the original potion's effect. Do not
+describe this version as restoring full-size healing behavior.
 
 ### All My Runes
 
@@ -114,26 +114,31 @@ jar and require a loader restart after changes.
 oversight.**
 
 `self-check` used to name `old-huge-potions` and `all-my-runes`. All three
-write `type` on a pickup, `Veto.rewrite` is a map, and jars load in alphabetical
-order, so `self-check` ran last and won. What that looked like: a small potion
-came back as its original type instead of the large one, and a rune came back
-with the original type but the copied one's price, level and modifiers, which
-is an item nobody designed. `self-check` reported its own check as passed the
-whole time, because it verifies that the verdict travels and not what became
-of it.
+wrote `type` into the pickup verdict, that verdict was a map, and jars load in
+alphabetical order, so `self-check` ran last and won. What that looked like: a
+small potion came back as its original type instead of the large one, and a
+rune came back with the original type but the copied one's price, level and
+modifiers, which is an item nobody designed. `self-check` reported its own
+check as passed the whole time, because it verifies that the verdict travels
+and not what became of it.
 
-The fix was in the probe rather than in the declaration. `SelfCheckMod.taken`
-asks `Veto.rewrites()` whether the field has already been written, and every
-mutating check in that mod stands down when it has. All three now run
-together. Do not put the declarations back without first making that probe
-unsafe again.
+The clash cannot happen now, for two reasons that both came out of the API
+rather than out of a declaration. Retyping an item left the verdict altogether
+and lives on `Game`, because it edits an object in the world and outlives the
+event; a pickup decides which object is picked up and nothing else. And an
+event is folded between listeners, so `value()` is what the mods before this
+one decided rather than what the game proposed.
+
+`SelfCheckMod.taken` therefore asks whether `value()` and `initial()` still
+agree, and every deciding check in that mod stands down when they do not. All
+three run together. Do not put the declarations back without first making that
+probe unsafe again.
 
 Before reaching for `conflicts`, check whether the clash is really between the
-two mods or between one mod and an event getter. An event's getters return the
-values that came off the wire and never the pending rewrites, so
-`event.next(event.next())` writes the game's number over whatever the mod
-before it asked for. That is a bug in the listener, not a pair that cannot
-coexist.
+two mods. A listener that reads `value()`, decides from it and answers with a
+mutation composes with whatever ran before it. One that answers with
+`initial()` throws that work away, and that is a bug in the listener, not a
+pair that cannot coexist.
 
 What a declaration now does: the launcher offers both sides anyway and draws
 `Clash.Sentence` in amber under each of them. It hides nothing. So a
@@ -261,7 +266,7 @@ cd ../coderpack && ./gradlew jar && python tests/replay.py
 ```
 
 It stages this repository's built jars, enables `tracer`,
-`old-huge-potions`, and `all-my-runes`, then compares nine vetoable verdicts
+`old-huge-potions`, and `all-my-runes`, then compares nine decided verdicts
 and the 19 traced event names. It stages but does not enable `self-check`.
 
 That used to be because Self Check overwrote the behaviour under test, which
@@ -281,7 +286,7 @@ java -cp self-check/build/sacred-mod/self-check-0.99.1.jar dev.ancaria.selfcheck
 
 `self-check/verify.py` needs the built mod jar plus Coderpack `api` and `zygote`
 jars in Maven Local. It starts the zygote, acts as the host, and checks all
-seven vetoable verdicts without the game. The preview command opens the UI
+seven decided verdicts without the game. The preview command opens the UI
 without a game session.
 
 ## Repository boundaries
@@ -335,7 +340,7 @@ this repository. No Ancaria repository redistributes game content.
 - A clean build needs network access for uncached Gradle and Maven artifacts,
   including JavaFX from Maven Central. Maven Local is checked before the
   Gradle Plugin Portal and Maven Central for the project-owned artifacts.
-- Do not move `Game` calls into vetoable event handlers. They can wait on the
+- Do not move `Game` calls into deciding event handlers. They can wait on the
   same pipeline that is waiting for the handler to return.
-- Do not perform disk I/O from Tracer's event listener. A vetoable event keeps
+- Do not perform disk I/O from Tracer's event listener. A decidable event keeps
   the game thread waiting until dispatch completes.
