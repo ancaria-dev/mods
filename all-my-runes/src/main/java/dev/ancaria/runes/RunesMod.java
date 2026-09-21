@@ -69,29 +69,29 @@ public final class RunesMod implements SacredMod {
     }
 
     @Subscribe
-    public void onPickup(Pickup event) {
+    public Pickup.Mutation onPickup(Pickup event) {
         if (owners == null || !event.player() || heroClass == HeroClass.UNKNOWN) {
-            return;
+            return Pickup.Mutation.none();
         }
         Item item = event.item();
         HeroClass owner = owners.ownerOf(item.typeId());
         // Not in the table at all: leave it alone.  Silence means "unknown",
         // not "not yours", and the table is incomplete by construction.
         if (owner == null) {
-            return;
+            return Pickup.Mutation.none();
         }
         if (owner == heroClass) {
             mine.remember(item);
-            return;
+            return Pickup.Mutation.none();
         }
         Item template = mine.any();
         if (template == null) {
             context.log("Leaving the " + owner + " rune unchanged until you pick up "
                         + "one of your own to copy");
-            return;
+            return Pickup.Mutation.none();
         }
-        context.game().reshape(item.ref(), template);
         context.log("Changed " + item.typeName() + " from a " + owner + " rune to "
                     + template.typeName());
+        return Pickup.Mutation.reshape(template);
     }
 }

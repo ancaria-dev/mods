@@ -237,19 +237,25 @@ public final class SelfCheckMod implements SacredMod {
     // ---- items -----------------------------------------------------------
 
     @Subscribe
-    public void onPickup(Pickup event) {
+    public Pickup.Mutation onPickup(Pickup event) {
         String name = event.item().typeName();
         model.event("Picking up " + name);
         if (!event.player()) {
-            return;
+            return Pickup.Mutation.none();
         }
-        // This used to be the one that broke other mods: retyping was part of
-        // the verdict, so this probe ran last and put the original back over
-        // whatever old-huge-potions or all-my-runes had asked for. Retyping
-        // lives on Game now, and what a pickup decides is which object it is,
-        // so answering with the object the game already named changes nothing
-        // and cannot overwrite anybody.
+        // The one that used to break other mods. old-huge-potions turns a small
+        // potion into a large one and all-my-runes copies a rune onto another,
+        // and this probe ran last and put the original back over the top of
+        // them. It asks now, which it could not do before: edited() is the fold
+        // answering, not a map of pending writes.
+        if (event.edited()) {
+            model.pass(Checks.PICKUP, name + "; another mod is editing it, left alone");
+            return Pickup.Mutation.none();
+        }
+        // Retyping to the type it already has: the verdict travels the whole way
+        // and the item is exactly what it was.
         model.pass(Checks.PICKUP, name + "; answered without changing it");
+        return Pickup.Mutation.retype(event.item().typeId());
     }
 
     @Subscribe

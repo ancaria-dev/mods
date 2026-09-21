@@ -46,19 +46,19 @@ public final class PotionsMod implements SacredMod {
     }
 
     @Subscribe
-    public void onPickup(Pickup event) {
+    public Pickup.Mutation onPickup(Pickup event) {
         if (upgrades == null || !event.player()) {
-            return;
+            return Pickup.Mutation.none();
         }
         Item item = event.item();
         int better = upgrades.upgradeFor(item.typeId());
         if (better == 0) {
-            return;
+            return Pickup.Mutation.none();
         }
-        // Retyping edits the object in the world and outlives this pickup,
-        // so it is something done to the game rather than a verdict the
-        // game is waiting on.
-        context.game().retype(item.ref(), better);
+        // In the verdict rather than through Game.retype: the edit has to land
+        // before the game picks the item up, and a command is a round trip
+        // through the host while the game thread waits on this very verdict.
         context.log(item.typeName() + " → " + upgrades.name(better));
+        return Pickup.Mutation.retype(better);
     }
 }

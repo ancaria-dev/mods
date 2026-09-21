@@ -83,8 +83,8 @@ from a deciding callback. The supported patterns are
 targets, already-large potions, unmatched names, and non-player pickups stay
 unchanged.
 
-The current implementation calls `Game.retype` and changes only the item type.
-It changes the name and appearance but does not copy the larger potion's price
+The current implementation answers with `Pickup.Mutation.retype` and changes
+only the item type. It changes the name and appearance but does not copy the larger potion's price
 or modifiers. Its effect therefore remains the original potion's effect. Do not
 describe this version as restoring full-size healing behavior.
 
@@ -122,17 +122,24 @@ modifiers, which is an item nobody designed. `self-check` reported its own
 check as passed the whole time, because it verifies that the verdict travels
 and not what became of it.
 
-The clash cannot happen now, for two reasons that both came out of the API
-rather than out of a declaration. Retyping an item left the verdict altogether
-and lives on `Game`, because it edits an object in the world and outlives the
-event; a pickup decides which object is picked up and nothing else. And an
-event is folded between listeners, so `value()` is what the mods before this
-one decided rather than what the game proposed.
+The clash cannot happen now, and the reason came out of the API rather than
+out of a declaration: the event is folded between listeners. `Pickup.edited()`
+says whether somebody has already asked to change the object, and `value()` on
+a numeric event is what the mods before this one decided rather than what the
+game proposed. Asking was simply not possible before.
 
-`SelfCheckMod.taken` therefore asks whether `value()` and `initial()` still
-agree, and every deciding check in that mod stands down when they do not. All
-three run together. Do not put the declarations back without first making that
-probe unsafe again.
+`self-check` therefore stands down whenever an earlier listener has decided,
+through `edited()` on a pickup and `taken()` on a number. All three run
+together. Do not put the declarations back without first making that probe
+unsafe again.
+
+Retyping stayed in the pickup verdict, and that was not the first answer. It
+moved to `Game.retype` for a while, because it edits an object in the world and
+outlives the event, which is a good reason. The reason it came back is timing:
+a command is a round trip through the host while the game thread is stopped
+waiting for the verdict, and the edit has to land before the game picks the
+item up. `Game.retype` and `Game.reshape` are still there for an edit that is
+not racing a pickup.
 
 Before reaching for `conflicts`, check whether the clash is really between the
 two mods. A listener that reads `value()`, decides from it and answers with a
