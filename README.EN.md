@@ -30,11 +30,14 @@ Private repositories can use an access token.
 | [`old-huge-potions`](old-huge-potions) | Replaces each potion picked up by the player with the full-size type of the same kind. It builds the mapping from type names reported by the running game. The item's price stays unchanged, while the effect on healing has yet to be confirmed. |
 | [`all-my-runes`](all-my-runes) | Replaces another class's rune with a copy of one of the hero's runes that the mod has already seen. Pick up one of your own first. Unknown runes are left unchanged. |
 
-`self-check` conflicts with `old-huge-potions` and `all-my-runes`. All three
-answer the pickup event and can rewrite the same item, so the last listener to
-run decides the result. The launcher removes both sides of each conflict from
-the install list. You can still install them by hand if you accept that
-ordering.
+All four mods work together and none of them declares a conflict.
+
+`self-check` used to name `old-huge-potions` and `all-my-runes`. All three
+write an item's type at pickup, the last listener to run decides, and
+`self-check` ran last: a potion came back as its original type instead of the
+large one, and a rune came back with its original type alongside the copied
+one's price, level and modifiers. `self-check` now stands down when another
+mod has already written the field, so there is nothing left to declare.
 
 ## How to build
 

@@ -110,18 +110,37 @@ jar and require a loader restart after changes.
 
 ## Conflicts
 
-`self-check` declares conflicts with `old-huge-potions` and `all-my-runes`.
-All three can write the pickup verdict, and the last listener wins. Keep both
-declarations. They are the live example of the `conflicts` field and prevent
-the diagnostic from undoing or obscuring the pickup mods.
+**No mod here declares one, and that is the finished state rather than an
+oversight.**
 
-Use `conflicts` only when two mods write the same field on the same event and
-cannot work together. The launcher removes both sides of a conflict between
-offered mods. It also removes a candidate that conflicts with an installed
-mod, or that an installed mod names as a conflict. A careless declaration can
-make a mod disappear from the Available list.
+`self-check` used to name `old-huge-potions` and `all-my-runes`. All three
+write `type` on a pickup, `Veto.rewrite` is a map, and jars load in alphabetical
+order, so `self-check` ran last and won. What that looked like: a small potion
+came back as its original type instead of the large one, and a rune came back
+with the original type but the copied one's price, level and modifiers, which
+is an item nobody designed. `self-check` reported its own check as passed the
+whole time, because it verifies that the verdict travels and not what became
+of it.
 
-`tracer` declares no conflicts. Its monitor listener cannot alter a verdict.
+The fix was in the probe rather than in the declaration. `SelfCheckMod.taken`
+asks `Veto.rewrites()` whether the field has already been written, and every
+mutating check in that mod stands down when it has. All three now run
+together. Do not put the declarations back without first making that probe
+unsafe again.
+
+Before reaching for `conflicts`, check whether the clash is really between the
+two mods or between one mod and an event getter. An event's getters return the
+values that came off the wire and never the pending rewrites, so
+`event.next(event.next())` writes the game's number over whatever the mod
+before it asked for. That is a bug in the listener, not a pair that cannot
+coexist.
+
+What a declaration now does: the launcher offers both sides anyway and draws
+`Clash.Sentence` in amber under each of them. It hides nothing. So a
+declaration is a sentence shown to a player, and it should be true.
+
+`tracer` declares no conflicts either, and cannot need one. Its monitor
+listener cannot alter a verdict.
 
 ## SRML index generation
 
@@ -238,9 +257,15 @@ cd ../coderpack && ./gradlew jar && python tests/replay.py
 
 It stages this repository's built jars, enables `tracer`,
 `old-huge-potions`, and `all-my-runes`, then compares nine vetoable verdicts
-and the 19 traced event names. It stages but does not enable `self-check`
-because Self Check answers pickups and would overwrite the behavior under
-test.
+and the 19 traced event names. It stages but does not enable `self-check`.
+
+That used to be because Self Check overwrote the behaviour under test, which
+is fixed. It is still left out for a duller reason: with it enabled it adds
+its own rewrite to every event the other three leave alone, so six of the nine
+expected verdicts would have to be rewritten to describe a fourth mod rather
+than the three under test. Enabling it by hand is the way to check the
+standing-down behaviour, and `END 3` and `END 9` are the two lines to read:
+a potion that stays upgraded and a rune that keeps its whole copy.
 
 Self Check also has focused commands:
 

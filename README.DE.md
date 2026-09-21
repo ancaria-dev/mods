@@ -31,12 +31,15 @@ Repositories kann ein Zugriffstoken hinterlegt werden.
 | [`old-huge-potions`](old-huge-potions) | Ersetzt jeden vom Spieler aufgehobenen Trank durch den größten Typ derselben Art. Die Zuordnung entsteht aus den Typnamen des laufenden Spiels. Der Preis des Gegenstands bleibt gleich. Ob sich die Heilwirkung ändert, ist noch nicht bestätigt. |
 | [`all-my-runes`](all-my-runes) | Ersetzt eine Rune für eine fremde Klasse durch die Kopie einer bereits gesehenen Rune des Helden. Zuerst muss eine eigene Rune aufgehoben werden. Unbekannte Runen bleiben unverändert. |
 
-Der Deskriptor von `self-check` führt die letzten beiden Mods als Konflikte auf.
-Alle drei beantworten das Ereignis beim Aufheben und können denselben
-Gegenstand umschreiben. Das Ergebnis des zuletzt ausgeführten Listeners gilt.
-Der Launcher entfernt beide Seiten eines solchen Konflikts aus der
-Installationsliste. Wer diese Reihenfolge bewusst akzeptiert, kann die Mods
-weiterhin von Hand installieren.
+Alle vier Mods arbeiten zusammen, und keiner davon meldet einen Konflikt.
+
+Früher führte `self-check` die beiden anderen als Konflikte auf. Alle drei
+schreiben beim Aufheben den Typ des Gegenstands, es gilt der zuletzt
+ausgeführte Listener, und `self-check` lief zuletzt: Ein Trank kam mit seinem
+ursprünglichen Typ statt dem großen zurück, und eine Rune mit ihrem
+ursprünglichen Typ, aber mit Preis, Stufe und Modifikatoren der kopierten.
+`self-check` tritt jetzt zurück, sobald ein anderer Mod das Feld bereits
+geschrieben hat, und damit bleibt nichts zu melden.
 
 ## Bauen
 
