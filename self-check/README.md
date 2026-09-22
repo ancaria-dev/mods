@@ -13,19 +13,19 @@ Run these commands from the `mods` repository root:
 gradlew :self-check:assembleSacredMod
 gradlew :self-check:installSacredMod -PsacredDir="C:/Games/..."
 python self-check/verify.py
-java -cp self-check/build/sacred-mod/self-check-0.99.1.jar dev.ancaria.selfcheck.view.Preview
+java -cp self-check/build/sacred-mod/self-check-0.100.0.jar dev.ancaria.selfcheck.view.Preview
 ```
 
-The build writes `self-check/build/sacred-mod/self-check-0.99.1.jar`, and the
+The build writes `self-check/build/sacred-mod/self-check-0.100.0.jar`, and the
 install task copies that jar to `<Sacred Gold>/mods`.
 
 `python self-check/verify.py` needs the built mod jar and Coderpack’s `api` and `zygote`
 jars in Maven Local. It starts the zygote, acts as the host, checks all seven
-vetoable verdicts, and then exits.
+decided verdicts, and then exits.
 
 ## What it changes
 
-Receiving an event proves that the game-to-mod path works. The vetoable
+Receiving an event proves that the game-to-mod path works. The deciding
 scenarios also send a verdict back:
 
 | Event | What Self Check does |
@@ -42,6 +42,11 @@ that do not belong to the player are logged but do not pass the pickup
 scenario.
 
 Gold spent is left unchanged.
+
+Self Check stands down when another mod has already decided the event. A
+number whose `value()` no longer equals its `initial()`, or a pickup whose
+`edited()` is true, passes its scenario without a rewrite. This keeps it from
+undoing Old Huge Potions or All My Runes.
 
 ## Code structure
 

@@ -38,10 +38,10 @@ sacred {
     repository = "https://github.com/ancaria-dev/mods"
 
     // No conflicts declared, deliberately. This used to name old-huge-potions
-    // and all-my-runes, because all three write the item type at pickup and
+    // and all-my-runes, because all three wrote the item type at pickup and
     // the last listener won: this one ran last and put the original type back
     // over their work. It now stands down whenever another mod has already
-    // written the field it was about to probe, so there is nothing left to
+    // decided the event it was about to probe, so there is nothing left to
     // declare. Do not put them back without first making that probe unsafe
     // again.
 

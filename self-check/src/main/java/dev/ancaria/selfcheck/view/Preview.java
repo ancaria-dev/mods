@@ -11,7 +11,7 @@ import java.util.concurrent.FutureTask;
  * Opens the window on its own, filled with made-up rows.
  *
  * <pre>
- * java -cp build/sacred-mod/self-check-0.99.2.jar dev.ancaria.selfcheck.view.Preview
+ * java -cp build/sacred-mod/self-check-0.100.0.jar dev.ancaria.selfcheck.view.Preview
  * </pre>
  *
  * <p>Worth its own class because the alternative for a layout change is starting

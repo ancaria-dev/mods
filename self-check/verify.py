@@ -16,8 +16,8 @@ import time
 
 HERE = pathlib.Path(__file__).resolve().parent
 M2 = pathlib.Path.home() / ".m2" / "repository" / "dev" / "ancaria" / "coderpack"
-CODERPACK = "0.99.0"
-JAR = HERE / "build" / "sacred-mod" / "self-check-0.99.2.jar"
+CODERPACK = "0.102.0"
+JAR = HERE / "build" / "sacred-mod" / "self-check-0.100.0.jar"
 MODS = HERE / "build" / "verify-mods"
 
 # The host's half of the two commands the mod makes at startup.
@@ -33,7 +33,7 @@ SCRIPT = [
      "gold=51230 exp=9400000", None),
     ("EVT 0 pos.changed x=222850 y=137608 uiX=4152 uiY=2564 src=hero", None),
 
-    # Vetoable, and the one place self-check changes a number that matters.
+    # Decidable, and the one place self-check changes a number that matters.
     ("ASK 1 health.damage kind=damage damage=120 prev=980 next=860 max=1200",
      "END 1 set.next=861"),
     ("EVT 0 health.near_death next=150 prev=400 max=1200 percent=12", None),
