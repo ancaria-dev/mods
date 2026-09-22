@@ -58,7 +58,7 @@ gradlew installSacredMod -PsacredDir="C:/Games/Sacred Gold"
 
 The `dev.ancaria.coderpack` plugin and API resolve as published dependencies,
 not from sibling directories: the plugin from the Gradle Plugin Portal, the API
-from Maven Central. `gradle/libs.versions.toml` pins the plugin at `0.101.0`
+from Maven Central. `gradle/libs.versions.toml` pins the plugin at `0.101.1`
 and the API at `0.102.0`. Maven Local is checked first, so running
 `publishToMavenLocal` in `build` or `coderpack` lets you test an unreleased
 change.

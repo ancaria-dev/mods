@@ -5,7 +5,7 @@
 # entry, which was true only while the two repositories happened to be on the
 # same number.
 [versions]
-plugin = "0.101.0"
+plugin = "0.101.1"
 api = "0.102.0"
 
 [plugins]

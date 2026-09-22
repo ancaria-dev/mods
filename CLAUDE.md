@@ -224,7 +224,7 @@ reason to publish anything. `tools/version.ps1` refuses to run while they
 differ, which is the script working as designed rather than a state to undo:
 align them by hand the next time all four genuinely move together. The plugin
 and API dependency are pinned separately in `gradle/libs.versions.toml`, at
-`0.101.0` and `0.102.0`, and are different numbers. The generated descriptor
+`0.101.1` and `0.102.0`, and are different numbers. The generated descriptor
 uses the project version. The API contract is `2`, and the descriptor writes it
 as the range `api = "[2,3)"`, which is distinct from any artifact version.
 
