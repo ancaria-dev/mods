@@ -28,18 +28,19 @@ Repositories kann ein Zugriffstoken hinterlegt werden.
 |---|---|
 | [`self-check`](self-check) | Abonniert alle Loader-Ereignisse und öffnet ein Fenster mit 20 Szenarien. Weiß steht für noch nicht gesehen, Grün für bestanden und Rot für ein unerwartetes Ergebnis. Bei Ereignissen mit Antwort prüft die Mod den gesamten Weg vom Spiel zur JVM und zurück. |
 | [`tracer`](tracer) | Schreibt jedes Ereignis nach `<Sacred Gold>/logs/logs-<time>.txt`, mit einer Datei pro Start. Alle Listener verwenden die Priorität `MONITOR`. Tracer zeichnet daher die endgültige Antwort auf und kann sie nicht verändern. |
-| [`old-huge-potions`](old-huge-potions) | Ersetzt jeden vom Spieler aufgehobenen Trank durch den größten Typ derselben Art. Die Zuordnung entsteht aus den Typnamen des laufenden Spiels. Der Preis des Gegenstands bleibt gleich. Ob sich die Heilwirkung ändert, ist noch nicht bestätigt. |
+| [`old-huge-potions`](old-huge-potions) | Ersetzt jeden vom Spieler aufgehobenen Trank durch den größten Typ derselben Art. Die Zuordnung entsteht aus den Typnamen des laufenden Spiels. Nur der Typ ändert sich, daher behält der Trank seinen ursprünglichen Preis und seine Wirkung. |
 | [`all-my-runes`](all-my-runes) | Ersetzt eine Rune für eine fremde Klasse durch die Kopie einer bereits gesehenen Rune des Helden. Zuerst muss eine eigene Rune aufgehoben werden. Unbekannte Runen bleiben unverändert. |
 
 Alle vier Mods arbeiten zusammen, und keiner davon meldet einen Konflikt.
 
 Früher führte `self-check` die beiden anderen als Konflikte auf. Alle drei
-schreiben beim Aufheben den Typ des Gegenstands, es gilt der zuletzt
+schrieben beim Aufheben den Typ des Gegenstands, es galt der zuletzt
 ausgeführte Listener, und `self-check` lief zuletzt: Ein Trank kam mit seinem
 ursprünglichen Typ statt dem großen zurück, und eine Rune mit ihrem
 ursprünglichen Typ, aber mit Preis, Stufe und Modifikatoren der kopierten.
-`self-check` tritt jetzt zurück, sobald ein anderer Mod das Feld bereits
-geschrieben hat, und damit bleibt nichts zu melden.
+Jetzt sieht ein Listener, was vor ihm entschieden wurde, und `self-check`
+tritt zurück, sobald ein anderer Mod das Ereignis bereits entschieden hat.
+Damit bleibt nichts zu melden.
 
 ## Bauen
 
@@ -59,10 +60,12 @@ gradlew installSacredMod -PsacredDir="C:/Games/Sacred Gold"
 ```
 
 Das Plugin `dev.ancaria.coderpack` und die API werden als veröffentlichte
-Abhängigkeiten aufgelöst, nicht über benachbarte Verzeichnisse. Bis zu ihrem
-ersten Release sucht der Build in Maven Local. Zuvor muss
-`publishToMavenLocal` in den Repositories `build` und `coderpack` ausgeführt
-werden. Die CI erledigt dasselbe in getrennten Checkouts.
+Abhängigkeiten aufgelöst, nicht über benachbarte Verzeichnisse: das Plugin aus
+dem Gradle Plugin Portal, die API aus Maven Central.
+`gradle/libs.versions.toml` legt das Plugin auf `0.101.0` und die API auf
+`0.102.0` fest. Maven Local wird zuerst geprüft, daher lässt sich mit
+`publishToMavenLocal` in `build` oder `coderpack` eine noch unveröffentlichte
+Änderung testen.
 
 ## SRML
 
@@ -112,7 +115,7 @@ JAR-Datei, die bei der Mod-Prüfung durchfällt, an einer unlesbaren
 
 Jede Mod erhält einen eigenen GitHub-Release mit einem Tag im Format
 `<id>-v<version>`. Dieser Release enthält ihre JAR-Datei. Auf `master` baut der
-Workflow alle vier Mods, prüft den gespeicherten Index und erstellt einen
+Workflow alle vier Mods, erzeugt und committet den Index neu und erstellt einen
 Release nur dann, wenn der zugehörige Tag noch fehlt. Bei unveränderten
 Versionen wird nichts veröffentlicht.
 

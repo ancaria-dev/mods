@@ -27,17 +27,18 @@ Private repositories can use an access token.
 |---|---|
 | [`self-check`](self-check) | Subscribes to every loader event and opens a window with 20 scenarios. White means unseen, green means passed, and red means an unexpected result. For events that accept an answer, the mod checks the full trip from the game to the JVM and back. |
 | [`tracer`](tracer) | Writes every event to `<Sacred Gold>/logs/logs-<time>.txt`, one file per run. All listeners use `MONITOR` priority, so Tracer records the final answer and cannot change it. |
-| [`old-huge-potions`](old-huge-potions) | Replaces each potion picked up by the player with the full-size type of the same kind. It builds the mapping from type names reported by the running game. The item's price stays unchanged, while the effect on healing has yet to be confirmed. |
+| [`old-huge-potions`](old-huge-potions) | Replaces each potion picked up by the player with the full-size type of the same kind. It builds the mapping from type names reported by the running game. Only the type changes, so the potion keeps its original price and effect. |
 | [`all-my-runes`](all-my-runes) | Replaces another class's rune with a copy of one of the hero's runes that the mod has already seen. Pick up one of your own first. Unknown runes are left unchanged. |
 
 All four mods work together and none of them declares a conflict.
 
 `self-check` used to name `old-huge-potions` and `all-my-runes`. All three
-write an item's type at pickup, the last listener to run decides, and
+wrote an item's type at pickup, the last listener to run decided, and
 `self-check` ran last: a potion came back as its original type instead of the
 large one, and a rune came back with its original type alongside the copied
-one's price, level and modifiers. `self-check` now stands down when another
-mod has already written the field, so there is nothing left to declare.
+one's price, level and modifiers. Listeners now see what earlier ones decided,
+and `self-check` stands down when another mod has already decided the event,
+so there is nothing left to declare.
 
 ## How to build
 
@@ -56,9 +57,11 @@ gradlew installSacredMod -PsacredDir="C:/Games/Sacred Gold"
 ```
 
 The `dev.ancaria.coderpack` plugin and API resolve as published dependencies,
-not from sibling directories. Neither has had its first release, so this build
-currently looks in Maven Local. Run `publishToMavenLocal` in the `build` and
-`coderpack` repositories first. CI does the same in separate checkouts.
+not from sibling directories: the plugin from the Gradle Plugin Portal, the API
+from Maven Central. `gradle/libs.versions.toml` pins the plugin at `0.101.0`
+and the API at `0.102.0`. Maven Local is checked first, so running
+`publishToMavenLocal` in `build` or `coderpack` lets you test an unreleased
+change.
 
 ## SRML
 
