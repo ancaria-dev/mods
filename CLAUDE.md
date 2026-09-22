@@ -129,7 +129,8 @@ a numeric event is what the mods before this one decided rather than what the
 game proposed. Asking was simply not possible before.
 
 `self-check` therefore stands down whenever an earlier listener has decided,
-through `edited()` on a pickup and `taken()` on a number. All three run
+through `edited()` on a pickup and its own `taken()` check, `value()` against
+`initial()`, on a number. All three run
 together. Do not put the declarations back without first making that probe
 unsafe again.
 
@@ -217,15 +218,15 @@ the jar version and other build metadata.
 ## Versions and releases
 
 Each mod has its own `version` in `<id>/build.gradle.kts`, and they do not
-have to agree. `self-check` is on `0.99.2` and the other three on `0.99.1`,
-because the pickup probe was fixed in that one mod and republishing three
-unchanged jars to keep a number tidy is not a reason to publish anything.
-`tools/version.ps1` refuses to run while they differ, which is the script
-working as designed rather than a state to undo: align them by hand the next
-time all four genuinely move together. The plugin and API dependency are pinned separately in
-`gradle/libs.versions.toml` and are a different number. The generated descriptor
-uses the project version. The API contract range is `[1,2)`, which is distinct
-from any artifact version.
+have to agree. All four are on `0.100.0` now. When one mod changes alone, raise
+only that one: republishing three unchanged jars to keep a number tidy is not a
+reason to publish anything. `tools/version.ps1` refuses to run while they
+differ, which is the script working as designed rather than a state to undo:
+align them by hand the next time all four genuinely move together. The plugin
+and API dependency are pinned separately in `gradle/libs.versions.toml`, at
+`0.101.0` and `0.102.0`, and are different numbers. The generated descriptor
+uses the project version. The API contract is `2`, and the descriptor writes it
+as the range `api = "[2,3)"`, which is distinct from any artifact version.
 
 For every mod version change, update its `build.gradle.kts` and push. CI
 rebuilds, writes the index, and cuts the release. Never reuse a published
@@ -288,7 +289,7 @@ Self Check also has focused commands:
 
 ```
 python self-check/verify.py
-java -cp self-check/build/sacred-mod/self-check-0.99.1.jar dev.ancaria.selfcheck.view.Preview
+java -cp self-check/build/sacred-mod/self-check-0.100.0.jar dev.ancaria.selfcheck.view.Preview
 ```
 
 `self-check/verify.py` needs the built mod jar plus Coderpack `api` and `zygote`
