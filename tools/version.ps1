@@ -18,9 +18,9 @@
     repository, and a blanket replacement moved that too, sending the script
     after a coderpack release that does not exist.
 
-    gradle/libs.versions.toml's `coderpack` entry is that same number and is
-    likewise left alone: it is the toolchain these mods build against, not a
-    mod's own version.
+    gradle/libs.versions.toml's `api` entry is that same number, and its
+    `plugin` entry is the Gradle plugin's. Both are likewise left alone: they
+    are the toolchain these mods build against, not a mod's own version.
 
     This does not rebuild the jars or touch sacred.mods.repository.json, and it
     no longer has to. CI writes the index from the jars it publishes.
