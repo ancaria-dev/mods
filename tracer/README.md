@@ -10,7 +10,7 @@ would share it.
 21:44:07.480  Hero                 cls=9 clsName=Daemon level=142 hp=27127 maxHp=27127 gold=104233 exp=1904772311
 21:44:19.902  Pickup               ref=8814 type=1204 name=TYPE_OBJECT_RING_FIRE01 level=30 min=22 atk=0 prot=0 pct=7 player=1
 21:44:19.905  Stored               ref=8814 type=1204 name=TYPE_OBJECT_RING_FIRE01 ... player=1
-21:44:31.887  Damage               kind=damage damage=553 prev=19849 next=19296 max=26999   → next=19849
+21:44:31.887  Damage               kind=damage damage=553 prev=19849 next=19296 max=26999   → 19296 → 19849
 ```
 
 Four classes divide the work:
@@ -36,10 +36,10 @@ public void onAny(Event event) { ... }
 Events without an SDK class arrive as `Unknown`. The tracer uses their wire
 name and records all raw fields.
 
-`MONITOR` runs after `FIRST`, `NORMAL`, and `LAST`. A vetoable event is recorded
-with the accumulated verdict, such as `→ canceled` or `→ delta=1000`. Changes
-made by a monitor listener are discarded, so the tracer cannot alter the
-verdict.
+`MONITOR` runs after `FIRST`, `NORMAL`, and `LAST`. A decidable event is
+recorded with the accumulated verdict: `→ vetoed`, or the number the game
+proposed and the number it will be told, such as `→ 250 → 1000`. A monitor
+listener returns `void`, so the tracer cannot alter the verdict.
 
 ## Overflow
 

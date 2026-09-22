@@ -7,7 +7,7 @@ import java.util.List;
  * Fixed-size ring of pending lines.
  *
  * <p>The point is that {@link #add} never blocks and never touches a file: it
- * runs on SAL's dispatch thread, and for a vetoable event that thread is
+ * runs on SAL's dispatch thread, and for a decidable event that thread is
  * holding the game still. Writing from there, even to a buffered stream,
  * would put disk latency inside the game's frame.
  *

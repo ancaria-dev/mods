@@ -14,7 +14,7 @@ sacred {
     repository = "https://github.com/ancaria-dev/mods"
 
     // No conflicts, and there cannot be any: every listener in here is a
-    // MONITOR one, so the loader drops any rewrite it tried to make. A mod that
+    // MONITOR one, and a MONITOR listener returns nothing to decide with. A mod that
     // can only watch cannot disagree with anything.
     apiVersion = libs.versions.api.get()
     installTo = layout.dir(providers.gradleProperty("sacredDir").map { file("$it/mods") })
