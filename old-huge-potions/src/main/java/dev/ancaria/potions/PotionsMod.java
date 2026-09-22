@@ -31,8 +31,8 @@ public final class PotionsMod implements SacredMod {
     /**
      * The table is built here and not in {@code onLoad} for two reasons: there
      * is no world yet at load time, and building it asks the game a question --
-     * which is fine on an ordinary event and not fine inside a veto, where the
-     * game thread is waiting on this one.
+     * which is fine on an ordinary event and not fine inside a deciding
+     * listener, where the game thread is waiting on this one.
      */
     @Subscribe
     public void onHero(Hero event) {

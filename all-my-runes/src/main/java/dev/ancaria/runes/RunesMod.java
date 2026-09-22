@@ -55,7 +55,7 @@ public final class RunesMod implements SacredMod {
         }
         try {
             // Reading the table asks the game for type ids, so it waits for a
-            // world, and for an ordinary event, never a veto.
+            // world, and for an ordinary event, never a decidable one.
             owners = Owners.load(context.gameDir().resolve("mods"), context.game());
             context.log(owners.known() + (owners.known() == 1 ? " rune is known" : " runes are known")
                         + (owners.unresolved() > 0

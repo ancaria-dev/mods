@@ -22,7 +22,7 @@ final class Upgrades {
     private final Map<Integer, Integer> upgrade = new HashMap<>();
     private final Map<Integer, String> names = new HashMap<>();
 
-    /** One round-trip. Call it when a world exists, never from a veto. */
+    /** One round-trip. Call it when a world exists, never from a deciding listener. */
     static Upgrades build(Game game) {
         Upgrades table = new Upgrades();
         Map<String, Integer> potions = game.types(PREFIX);
