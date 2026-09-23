@@ -79,7 +79,8 @@ after the window closes, so the zygote must continue to terminate the JVM on
 `<Sacred Gold>/logs/logs-<yyyyMMdd-HHmmss>.txt`. `TracerMod` opens the sink and
 closes it in `onUnload`, which the loader calls on `BYE`, on a closed pipe and
 on unregistering the mod. The trace stays in its own file rather than
-`mods.log`, where `context.log` writes: it is the mod's product. `Recorder` owns the single base-`Event` listener
+`mods.log`, where `context.log` writes: it is the mod's product. `Recorder`
+owns the single base-`Event` listener
 and line formatting. `Ring` owns the fixed 8,192-line buffer. `Sink` owns the
 daemon writer thread and batched disk flushes.
 
@@ -158,8 +159,8 @@ moved to what is now `TypeRegistry.retype` for a while, because it edits an
 object in the world and outlives the event, which is a good reason. The reason
 it came back is timing: a command is a round trip through the host while the
 game thread is stopped waiting for the verdict, and the edit has to land before
-the game picks the item up. `getTypeRegistry().retype` and `reshape` are still there for an edit
-that is not racing a pickup.
+the game picks the item up. `getTypeRegistry().retype` and `reshape` are still
+there for an edit that is not racing a pickup.
 
 Before reaching for `conflicts`, check whether the clash is really between the
 two mods. A listener that reads `getValue()`, decides from it and answers with a
@@ -314,7 +315,8 @@ java -cp self-check/build/sacred-mod/self-check-0.200.0.jar dev.ancaria.selfchec
 `self-check/verify.py` needs the built mod jar plus Coderpack `api` and `zygote`
 jars in Maven Local, at the version its `CODERPACK` names. It starts the zygote,
 acts as the host, sends a frame for every scenario, answers the mod's commands,
-and checks all ten decided verdicts and the console answer without the game. The preview command opens the UI
+and checks all ten decided verdicts and the console answer without the game.
+The preview command opens the UI
 without a game session.
 
 ## Repository boundaries
