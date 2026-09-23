@@ -16,7 +16,7 @@ import time
 
 HERE = pathlib.Path(__file__).resolve().parent
 M2 = pathlib.Path.home() / ".m2" / "repository" / "dev" / "ancaria" / "coderpack"
-CODERPACK = "0.102.0"
+CODERPACK = "0.200.0"
 JAR = HERE / "build" / "sacred-mod" / "self-check-0.100.0.jar"
 MODS = HERE / "build" / "verify-mods"
 

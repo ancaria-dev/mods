@@ -1,6 +1,5 @@
 package dev.ancaria.selfcheck;
 
-import dev.ancaria.coderpack.api.Context;
 import dev.ancaria.coderpack.api.Game;
 import dev.ancaria.coderpack.api.SacredMod;
 import dev.ancaria.coderpack.api.Subscribe;
@@ -42,24 +41,22 @@ import javafx.application.Platform;
  * rewrite sets the value the game already had, which proves the round trip
  * without touching the save.
  */
-public final class SelfCheckMod implements SacredMod {
+public final class SelfCheckMod extends SacredMod {
 
-    private Context context;
     private SelfCheckModel model;
     private boolean probed;
 
     @Override
-    public void onLoad(Context context) {
-        this.context = context;
+    public void onLoad() {
         this.model = new SelfCheckModel(Checks.ALL);
-        context.events().register(this);
+        getContext().getRegistry().getEventRegistry().register(this);
 
         if (!Ui.boot()) {
-            context.log("JavaFX is unavailable in this JVM; Self Check will run without a window");
+            getContext().log("JavaFX is unavailable in this JVM; Self Check will run without a window");
             return;
         }
         Platform.runLater(() -> new SelfCheckWindow(model).show());
-        context.log("Window opened; waiting for events");
+        getContext().log("Window opened; waiting for events");
     }
 
     // ---- session ---------------------------------------------------------
@@ -73,24 +70,24 @@ public final class SelfCheckMod implements SacredMod {
      *
      * <p>This used to have to read a map of pending rewrites, because an
      * event's getters answered with the number off the wire and never with
-     * what the mod before had asked for. Now {@code value()} is the fold and
-     * {@code initial()} is the wire, so the question is just whether they
+     * what the mod before had asked for. Now {@code getValue()} is the fold and
+     * {@code getInitial()} is the wire, so the question is just whether they
      * still agree.
      */
     private static boolean taken(Amount event) {
-        return event.value() != event.initial();
+        return event.getValue() != event.getInitial();
     }
 
     @Subscribe
     public void onWorld(World event) {
-        String phase = event.phase().name().toLowerCase();
+        String phase = event.getPhase().name().toLowerCase();
         model.event("world " + phase);
         model.pass(Checks.WORLD, phase);
     }
 
     @Subscribe
     public void onHero(Hero event) {
-        model.pass(Checks.HERO, event.className() + ", level " + event.level());
+        model.pass(Checks.HERO, event.getClassName() + ", level " + event.getLevel());
         probe();
     }
 
@@ -105,14 +102,14 @@ public final class SelfCheckMod implements SacredMod {
         }
         probed = true;
         Thread worker = new Thread(() -> {
-            Game game = context.game();
-            String type = game.typeName(9);
+            Game game = getContext().getGame();
+            String type = game.getTypeRegistry().getTypeName(9);
             if (type != null && type.startsWith("TYPE_")) {
-                model.pass(Checks.TYPE_NAME, "typeName(9) = " + type);
+                model.pass(Checks.TYPE_NAME, "getTypeName(9) = " + type);
             } else {
-                model.fail(Checks.TYPE_NAME, "typeName(9) returned " + type);
+                model.fail(Checks.TYPE_NAME, "getTypeName(9) returned " + type);
             }
-            String label = game.uiString("UI_STATS_VICTORY");
+            String label = game.getUiString("UI_STATS_VICTORY");
             if (label != null && !label.isBlank()) {
                 model.pass(Checks.UI_STRING, "UI_STATS_VICTORY = " + label);
             } else {
@@ -125,20 +122,20 @@ public final class SelfCheckMod implements SacredMod {
 
     @Subscribe
     public void onPosition(Position event) {
-        model.pass(Checks.POSITION, event.hudX() + ", " + event.hudY());
+        model.pass(Checks.POSITION, event.getHudX() + ", " + event.getHudY());
     }
 
     // ---- health ----------------------------------------------------------
 
     @Subscribe
     public Damage.Mutation onDamage(Damage event) {
-        long before = event.value();
-        model.event(event.kind() + " " + event.hp() + " → " + before
-                    + " (" + event.damage() + " damage)");
-        if (!"damage".equals(event.kind())) {
+        long before = event.getValue();
+        model.event(event.getKind() + " " + event.getHp() + " → " + before
+                    + " (" + event.getDamage() + " damage)");
+        if (!"damage".equals(event.getKind())) {
             return Damage.Mutation.none();
         }
-        long softened = Math.min(before + 1, event.maxHp());
+        long softened = Math.min(before + 1, event.getMaxHp());
         if (softened == before) {
             model.pass(Checks.HEALTH, "Nothing to soften at " + before + " HP");
             return Damage.Mutation.none();
@@ -154,34 +151,34 @@ public final class SelfCheckMod implements SacredMod {
 
     @Subscribe
     public void onNearDeath(NearDeath event) {
-        model.pass(Checks.NEAR_DEATH, event.hp() + " HP left, " + event.percent() + "%");
+        model.pass(Checks.NEAR_DEATH, event.getHp() + " HP left, " + event.getPercent() + "%");
     }
 
     @Subscribe
     public void onDeath(Death event) {
-        model.pass(Checks.DEATH, "Killed by a " + event.blow() + "-point blow");
+        model.pass(Checks.DEATH, "Killed by a " + event.getBlow() + "-point blow");
     }
 
     @Subscribe
     public void onMobHit(MobHit event) {
         // MobDeath extends MobHit, so this fires for both. The death handler
         // below settles its own scenario.
-        model.pass(Checks.MOB_HIT, event.typeName() + " " + event.hp() + " → " + event.next());
+        model.pass(Checks.MOB_HIT, event.getTypeName() + " " + event.getHp() + " → " + event.getNext());
     }
 
     @Subscribe
     public void onMobDeath(MobDeath event) {
-        model.pass(Checks.MOB_DEATH, event.typeName() + " at level " + event.level());
+        model.pass(Checks.MOB_DEATH, event.getTypeName() + " at level " + event.getLevel());
     }
 
     // ---- progression -----------------------------------------------------
 
     @Subscribe
     public Gold.Mutation onGold(Gold event) {
-        long delta = event.value();
-        model.event((event.spending() ? "Spent " : "Found ") + Math.abs(delta)
-                    + " gold, had " + event.current());
-        if (event.spending()) {
+        long delta = event.getValue();
+        model.event((event.isSpending() ? "Spent " : "Found ") + Math.abs(delta)
+                    + " gold, had " + event.getCurrent());
+        if (event.isSpending()) {
             return Gold.Mutation.none();
         }
         if (taken(event)) {
@@ -195,89 +192,91 @@ public final class SelfCheckMod implements SacredMod {
 
     @Subscribe
     public Experience.Mutation onExperience(Experience event) {
-        long total = event.value();
+        long total = event.getValue();
         if (taken(event)) {
             model.pass(Checks.EXPERIENCE, "Another mod is already deciding this award");
             return Experience.Mutation.none();
         }
         model.change("Experience total " + total + " → " + (total + 1));
-        model.pass(Checks.EXPERIENCE, "+" + event.gain() + " XP; asked for one more");
+        model.pass(Checks.EXPERIENCE, "+" + event.getGain() + " XP; asked for one more");
         return Experience.Mutation.change(total + 1);
     }
 
     @Subscribe
     public Skill.Mutation onSkill(Skill event) {
         if (taken(event)) {
-            model.pass(Checks.SKILL, "Slot " + event.slot() + "; another mod is setting it");
+            model.pass(Checks.SKILL, "Slot " + event.getSlot() + "; another mod is setting it");
             return Skill.Mutation.none();
         }
         // Same value on purpose. A skill point is not ours to spend, and a
         // mutation back to the number that arrived says nothing on the wire.
-        model.pass(Checks.SKILL, "Slot " + event.slot() + " → " + event.value()
+        model.pass(Checks.SKILL, "Slot " + event.getSlot() + " → " + event.getValue()
                                  + "; answered with the same value");
-        return Skill.Mutation.change(event.value());
+        return Skill.Mutation.change(event.getValue());
     }
 
     @Subscribe
     public Attribute.Mutation onAttribute(Attribute event) {
         if (taken(event)) {
-            model.pass(Checks.ATTRIBUTE, event.name() + "; another mod is setting it");
+            model.pass(Checks.ATTRIBUTE, event.getName() + "; another mod is setting it");
             return Attribute.Mutation.none();
         }
-        model.pass(Checks.ATTRIBUTE, event.name() + " → " + event.value()
+        model.pass(Checks.ATTRIBUTE, event.getName() + " → " + event.getValue()
                                      + "; answered with the same value");
-        return Attribute.Mutation.change(event.value());
+        return Attribute.Mutation.change(event.getValue());
     }
 
     @Subscribe
     public void onLevel(LevelUp event) {
-        model.pass(Checks.LEVEL, event.previous() + " → " + event.level());
+        model.pass(Checks.LEVEL, event.getPrevious() + " → " + event.getLevel());
     }
 
     // ---- items -----------------------------------------------------------
 
     @Subscribe
     public Pickup.Mutation onPickup(Pickup event) {
-        String name = event.item().typeName();
+        String name = event.getItem().getTypeName();
         model.event("Picking up " + name);
-        if (!event.player()) {
+        if (!event.isPlayer()) {
             return Pickup.Mutation.none();
         }
         // The one that used to break other mods. old-huge-potions turns a small
         // potion into a large one and all-my-runes copies a rune onto another,
         // and this probe ran last and put the original back over the top of
-        // them. It asks now, which it could not do before: edited() is the fold
+        // them. It asks now, which it could not do before: isEdited() is the fold
         // answering, not a map of pending writes.
-        if (event.edited()) {
+        if (event.isEdited()) {
             model.pass(Checks.PICKUP, name + "; another mod is editing it, left alone");
             return Pickup.Mutation.none();
         }
         // Retyping to the type it already has: the verdict travels the whole way
         // and the item is exactly what it was.
         model.pass(Checks.PICKUP, name + "; answered without changing it");
-        return Pickup.Mutation.retype(event.item().typeId());
+        return Pickup.Mutation.retype(event.getItem().getTypeId());
     }
 
     @Subscribe
     public void onStored(Stored event) {
-        model.pass(Checks.STORED, event.item().typeName());
+        model.pass(Checks.STORED, event.getItem().getTypeName());
     }
 
     @Subscribe
     public void onEquip(Equip event) {
-        model.pass(Checks.EQUIP, (event.off() ? "Unequipped " : "Equipped ")
-                                 + event.item().typeName() + " in slot " + event.slot());
+        // An unequip carries no item, only the slot it left.
+        model.pass(Checks.EQUIP, event.isOff()
+                ? "Unequipped slot " + event.getSlot()
+                : "Equipped " + event.getItem().getTypeName() + " in slot " + event.getSlot());
     }
 
     @Subscribe
     public void onMoved(Moved event) {
-        model.pass(Checks.MOVED, event.from() + " → " + event.to());
+        model.pass(Checks.MOVED, event.getFrom() + " → " + event.getTo());
     }
 
     // ---- everything else -------------------------------------------------
 
     @Subscribe
     public void onUnknown(Unknown event) {
-        model.pass(Checks.UNKNOWN, event.name());
+        model.pass(Checks.UNKNOWN, event.getName());
     }
 }

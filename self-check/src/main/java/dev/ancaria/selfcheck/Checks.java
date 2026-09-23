@@ -37,8 +37,8 @@ final class Checks {
     static final List<Scenario> ALL = List.of(
             Scenario.seen(WORLD, "World loads and unloads"),
             Scenario.seen(HERO, "Hero is captured"),
-            Scenario.seen(TYPE_NAME, "Game answers typeName"),
-            Scenario.seen(UI_STRING, "Game answers uiString"),
+            Scenario.seen(TYPE_NAME, "Game answers getTypeName"),
+            Scenario.seen(UI_STRING, "Game answers getUiString"),
             Scenario.seen(POSITION, "Player moves"),
             Scenario.mutates(HEALTH, "Damage softened by 1 HP"),
             Scenario.seen(NEAR_DEATH, "Near death is announced"),
