@@ -1,6 +1,6 @@
 package dev.ancaria.potions;
 
-import dev.ancaria.coderpack.api.Game;
+import dev.ancaria.coderpack.api.TypeRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,9 +23,9 @@ final class Upgrades {
     private final Map<Integer, String> names = new HashMap<>();
 
     /** One round-trip. Call it when a world exists, never from a deciding listener. */
-    static Upgrades build(Game game) {
+    static Upgrades build(TypeRegistry types) {
         Upgrades table = new Upgrades();
-        Map<String, Integer> potions = game.types(PREFIX);
+        Map<String, Integer> potions = types.types(PREFIX);
         for (Map.Entry<String, Integer> potion : potions.entrySet()) {
             String best = largest(potion.getKey());
             Integer target = best == null ? null : potions.get(best);
