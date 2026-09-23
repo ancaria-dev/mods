@@ -4,9 +4,11 @@ Sacred did not always split potions into sizes. When the hero picks up a
 supported small, medium, minor, or major potion, this mod changes its type to
 the largest version of the same kind.
 
+Each change is a line in `<Sacred Gold>/logs/mods.log`:
+
 ```
-[coderpack] old-huge-potions: 16 potion types will be upgraded
-[coderpack] old-huge-potions: TYPE_OBJECT_POTION_SMALL_RED → TYPE_OBJECT_POTION_LARGE_RED
+[2026-09-23 14:05:31.058] [old-huge-potions]: 16 potion types will be upgraded
+[2026-09-23 14:06:02.914] [old-huge-potions]: TYPE_OBJECT_POTION_SMALL_RED → TYPE_OBJECT_POTION_LARGE_RED
 ```
 
 ## How potion types are found
@@ -48,4 +50,4 @@ price and effect. In other words, the current version is a visual and naming
 change.
 
 An item’s effect lives in its modifier list, available through
-`Item.modifiers()`. The mod does not rewrite that list.
+`Item.getModifiers()`. The mod does not rewrite that list.
