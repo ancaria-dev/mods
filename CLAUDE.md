@@ -36,19 +36,36 @@ neither field and the generator does not report the mismatch.
 
 ### Self Check
 
-`self-check` subscribes to every supported event and tracks 20 scenarios in a
-JavaFX window. `SelfCheckMod` owns event subscriptions and the two off-thread
-`Game` probes. `Checks` owns the scenario catalogue. The `model`, `viewmodel`,
-and `view` packages own data, observable state, and the read-only window.
+`self-check` subscribes to every supported event and tracks 50 scenarios in a
+JavaFX window, each with a one-line hint telling the player how to pass it,
+beside a panel of live hero data. `SelfCheckMod` owns event subscriptions, the
+console command and the probe thread. `HeroProbe` reads the hero through the
+direct API. `Checks` owns the scenario catalogue and every hint. The `model`,
+`viewmodel`, and `view` packages own data, observable state, and the read-only
+window.
+
+A scenario passes only on a real event or a real answer from the game. Add a
+new one to `Checks` with its hint, pass it from the listener for its event, and
+add a frame for it to `verify.py`.
 
 Deciding checks exercise the return path. Damage preserves 1 extra HP when
 possible. Gold gains and experience totals increase by 1. Skill, attribute,
-and player-pickup verdicts return the current value. Gold spending and
-non-player pickups remain unchanged.
+combat-art and player-pickup verdicts return the current value; for the three
+numbers that folds to no change, so the game is told `ok`. Gold spending and
+non-player pickups remain unchanged. The console line `selfcheck` is vetoed and
+answered with `getContext().getGame().getConsole().print(...)`.
 
-Keep `Game.typeName(9)` and `Game.uiString("UI_STATS_VICTORY")` on the daemon
-thread named `self-check-probe`. A command can block for up to two seconds.
-Waiting inside an event listener would pause `sal-dispatch`.
+Keep every `Game` call on the single daemon thread named `self-check-probe`:
+the type-registry, UI-string and creature probes after the first `Hero`, the
+hero reading every two seconds, and the console answer. A command can block
+for up to two seconds. Waiting inside an event listener would pause
+`sal-dispatch`, and inside a deciding one the game thread too. `onUnload` stops
+the thread.
+
+Events that can arrive tens of times a second (`Spawn`, `Despawn`, `Sector`,
+`HealthChanged`) go through `SelfCheckModel.tally`, which gathers hits into one
+FX update. Do not switch them to `pass`, which costs an FX task and a log line
+per call.
 
 The window uses JavaFX 21.0.9 with Windows-classified base, graphics, and
 controls jars bundled into the mod. UI changes must go through the JavaFX
@@ -60,7 +77,9 @@ after the window closes, so the zygote must continue to terminate the JVM on
 
 `tracer` writes every event to
 `<Sacred Gold>/logs/logs-<yyyyMMdd-HHmmss>.txt`. `TracerMod` opens the sink and
-registers the shutdown hook. `Recorder` owns the single base-`Event` listener
+closes it in `onUnload`, which the loader calls on `BYE`, on a closed pipe and
+on unregistering the mod. The trace stays in its own file rather than
+`mods.log`, where `context.log` writes: it is the mod's product. `Recorder` owns the single base-`Event` listener
 and line formatting. `Ring` owns the fixed 8,192-line buffer. `Sink` owns the
 daemon writer thread and batched disk flushes.
 
@@ -123,29 +142,29 @@ check as passed the whole time, because it verifies that the verdict travels
 and not what became of it.
 
 The clash cannot happen now, and the reason came out of the API rather than
-out of a declaration: the event is folded between listeners. `Pickup.edited()`
-says whether somebody has already asked to change the object, and `value()` on
-a numeric event is what the mods before this one decided rather than what the
-game proposed. Asking was simply not possible before.
+out of a declaration: the event is folded between listeners. `Pickup.isEdited()`
+says whether somebody has already asked to change the object, and `getValue()`
+on a numeric event is what the mods before this one decided rather than what
+the game proposed. Asking was simply not possible before.
 
 `self-check` therefore stands down whenever an earlier listener has decided,
-through `edited()` on a pickup and its own `taken()` check, `value()` against
-`initial()`, on a number. All three run
+through `isEdited()` on a pickup and its own `taken()` check, `getValue()`
+against `getInitial()`, on a number. All three run
 together. Do not put the declarations back without first making that probe
 unsafe again.
 
 Retyping stayed in the pickup verdict, and that was not the first answer. It
-moved to `Game.retype` for a while, because it edits an object in the world and
-outlives the event, which is a good reason. The reason it came back is timing:
-a command is a round trip through the host while the game thread is stopped
-waiting for the verdict, and the edit has to land before the game picks the
-item up. `Game.retype` and `Game.reshape` are still there for an edit that is
-not racing a pickup.
+moved to what is now `TypeRegistry.retype` for a while, because it edits an
+object in the world and outlives the event, which is a good reason. The reason
+it came back is timing: a command is a round trip through the host while the
+game thread is stopped waiting for the verdict, and the edit has to land before
+the game picks the item up. `getTypeRegistry().retype` and `reshape` are still there for an edit
+that is not racing a pickup.
 
 Before reaching for `conflicts`, check whether the clash is really between the
-two mods. A listener that reads `value()`, decides from it and answers with a
+two mods. A listener that reads `getValue()`, decides from it and answers with a
 mutation composes with whatever ran before it. One that answers with
-`initial()` throws that work away, and that is a bug in the listener, not a
+`getInitial()` throws that work away, and that is a bug in the listener, not a
 pair that cannot coexist.
 
 What a declaration now does: the launcher offers both sides anyway and draws
@@ -218,15 +237,15 @@ the jar version and other build metadata.
 ## Versions and releases
 
 Each mod has its own `version` in `<id>/build.gradle.kts`, and they do not
-have to agree. All four are on `0.100.0` now. When one mod changes alone, raise
+have to agree. All four are on `0.200.0` now. When one mod changes alone, raise
 only that one: republishing three unchanged jars to keep a number tidy is not a
 reason to publish anything. `tools/version.ps1` refuses to run while they
 differ, which is the script working as designed rather than a state to undo:
 align them by hand the next time all four genuinely move together. The plugin
-and API dependency are pinned separately in `gradle/libs.versions.toml`, at
-`0.101.1` and `0.102.0`, and are different numbers. The generated descriptor
-uses the project version. The API contract is `2`, and the descriptor writes it
-as the range `api = "[2,3)"`, which is distinct from any artifact version.
+and API dependency are pinned separately in `gradle/libs.versions.toml`, both
+at `0.200.0` for now. The generated descriptor uses the project version. The API
+contract is `3`, and the descriptor writes it as the range `api = "[3,4)"`,
+which is distinct from any artifact version.
 
 For every mod version change, update its `build.gradle.kts` and push. CI
 rebuilds, writes the index, and cuts the release. Never reuse a published
@@ -274,8 +293,8 @@ cd ../coderpack && ./gradlew jar && python tests/replay.py
 ```
 
 It stages this repository's built jars, enables `tracer`,
-`old-huge-potions`, and `all-my-runes`, then compares nine decided verdicts
-and the 19 traced event names. It stages but does not enable `self-check`.
+`old-huge-potions`, and `all-my-runes`, then compares ten decided verdicts
+and the 25 traced event names. It stages but does not enable `self-check`.
 
 That used to be because Self Check overwrote the behaviour under test, which
 is fixed. It is still left out for a duller reason: with it enabled it adds
@@ -293,8 +312,9 @@ java -cp self-check/build/sacred-mod/self-check-0.200.0.jar dev.ancaria.selfchec
 ```
 
 `self-check/verify.py` needs the built mod jar plus Coderpack `api` and `zygote`
-jars in Maven Local. It starts the zygote, acts as the host, and checks all
-seven decided verdicts without the game. The preview command opens the UI
+jars in Maven Local, at the version its `CODERPACK` names. It starts the zygote,
+acts as the host, sends a frame for every scenario, answers the mod's commands,
+and checks all ten decided verdicts and the console answer without the game. The preview command opens the UI
 without a game session.
 
 ## Repository boundaries
@@ -306,9 +326,9 @@ rather than one because two repositories publish them and they do not move
 together: `plugin` is the Gradle plugin and linter from `ancaria-dev/build`,
 read by the root `build.gradle.kts` as `alias(libs.plugins.coderpack)`, and
 `api` is the artifact from `ancaria-dev/coderpack`, read by every mod as
-`sacred { apiVersion = libs.versions.api.get() }`. They were one entry while
-the two repositories happened to be on the same number, which stopped being
-true.
+`sacred { apiVersion = libs.versions.api.get() }`. Both are `0.200.0` at the
+moment, and they stay two entries anyway: they were one while the two
+repositories happened to agree, which stopped being true once and will again.
 
 The `coderpack` command line is a different kind of dependency: not a Maven
 coordinate, but the `coderpack-*.zip` asset on an `ancaria-dev/build`
@@ -352,7 +372,8 @@ this repository. No Ancaria repository redistributes game content.
 - A clean build needs network access for uncached Gradle and Maven artifacts,
   including JavaFX from Maven Central. Maven Local is checked before the
   Gradle Plugin Portal and Maven Central for the project-owned artifacts.
-- Do not move `Game` calls into deciding event handlers. They can wait on the
+- Do not move `Game` calls, `getWorld()`, `getTypeRegistry()` and
+  `getConsole()` included, into deciding event handlers. They can wait on the
   same pipeline that is waiting for the handler to return.
 - Do not perform disk I/O from Tracer's event listener. A decidable event keeps
   the game thread waiting until dispatch completes.
