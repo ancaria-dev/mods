@@ -43,7 +43,12 @@ public final class CheckRow {
 
     /** Called on the FX thread by the view model, never from a listener. */
     void record(Status result, String note) {
-        hits++;
+        record(result, note, 1);
+    }
+
+    /** Several hits at once, gathered while the FX thread was busy. */
+    void record(Status result, String note, int count) {
+        hits += count;
         status.set(result);
         detail.set(hits > 1 ? note + "  (×" + hits + ")" : note);
     }

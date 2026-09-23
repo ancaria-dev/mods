@@ -17,6 +17,8 @@ import javafx.collections.ObservableList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The only thing the window knows about, and the only thing the mod talks to.
@@ -35,6 +37,14 @@ public final class SelfCheckModel {
     private final ObservableList<Line> log = FXCollections.observableArrayList();
     private final ObjectProperty<HeroInfo> hero =
             new SimpleObjectProperty<>(HeroInfo.waiting("No hero is loaded"));
+    /** Hits not yet shown, per scenario. Written on any thread, drained on FX. */
+    private final Map<String, Tally> tallies = new ConcurrentHashMap<>();
+    private final AtomicBoolean tallyQueued = new AtomicBoolean();
+    /** For a thread other than FX that wants the count, the console answer. */
+    private volatile int passedSoFar;
+
+    private record Tally(int hits, String note) {
+    }
 
     public SelfCheckModel(List<Scenario> scenarios) {
         for (Scenario scenario : scenarios) {
@@ -80,6 +90,31 @@ public final class SelfCheckModel {
         settle(key, Status.PASSED, note, Line.Level.PASS);
     }
 
+    /**
+     * A scenario worked, for an event that can arrive tens of times a second.
+     *
+     * <p>{@link #pass} costs one FX task and one log line per call, which a
+     * crowded fight turns into a queue the window never catches up with. This
+     * gathers hits and shows them in one task however many arrived meanwhile,
+     * and logs only the first.
+     */
+    public void tally(String key, String note) {
+        tallies.merge(key, new Tally(1, note),
+                      (before, now) -> new Tally(before.hits() + 1, now.note()));
+        if (tallyQueued.compareAndSet(false, true)) {
+            onFx(this::drainTallies);
+        }
+    }
+
+    /** Scenarios passed so far, from any thread. */
+    public int passedCount() {
+        return passedSoFar;
+    }
+
+    public int total() {
+        return checks.size();
+    }
+
     /** A scenario arrived and did not do what it said it would. */
     public void fail(String key, String note) {
         settle(key, Status.FAILED, note, Line.Level.FAIL);
@@ -106,8 +141,29 @@ public final class SelfCheckModel {
             // the progress bar honest.
             int index = checks.indexOf(row);
             checks.set(index, row);
+            passedSoFar = passed();
             push(Line.of(level, row.title() + ": " + note));
         });
+    }
+
+    private void drainTallies() {
+        // Cleared before draining, so a hit that lands meanwhile queues
+        // another drain rather than waiting for the next one.
+        tallyQueued.set(false);
+        for (String key : List.copyOf(tallies.keySet())) {
+            Tally tally = tallies.remove(key);
+            CheckRow row = byKey.get(key);
+            if (tally == null || row == null) {
+                continue;
+            }
+            boolean first = row.status() != Status.PASSED;
+            row.record(Status.PASSED, tally.note(), tally.hits());
+            checks.set(checks.indexOf(row), row);
+            passedSoFar = passed();
+            if (first) {
+                push(Line.of(Line.Level.PASS, row.title() + ": " + tally.note()));
+            }
+        }
     }
 
     private void add(Line line) {

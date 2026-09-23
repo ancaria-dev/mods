@@ -3,24 +3,49 @@ package dev.ancaria.selfcheck;
 import dev.ancaria.coderpack.api.Game;
 import dev.ancaria.coderpack.api.SacredMod;
 import dev.ancaria.coderpack.api.Subscribe;
+import dev.ancaria.coderpack.api.entity.Creature;
+import dev.ancaria.coderpack.api.event.Amount;
 import dev.ancaria.coderpack.api.event.Attribute;
+import dev.ancaria.coderpack.api.event.AttributeChanged;
+import dev.ancaria.coderpack.api.event.AttributePointsChanged;
+import dev.ancaria.coderpack.api.event.CombatArt;
+import dev.ancaria.coderpack.api.event.CombatArtChanged;
+import dev.ancaria.coderpack.api.event.Console;
 import dev.ancaria.coderpack.api.event.Damage;
 import dev.ancaria.coderpack.api.event.Death;
+import dev.ancaria.coderpack.api.event.Despawn;
+import dev.ancaria.coderpack.api.event.Discovery;
+import dev.ancaria.coderpack.api.event.Drink;
 import dev.ancaria.coderpack.api.event.Equip;
 import dev.ancaria.coderpack.api.event.Experience;
+import dev.ancaria.coderpack.api.event.ExperienceChanged;
 import dev.ancaria.coderpack.api.event.Gold;
+import dev.ancaria.coderpack.api.event.GoldChanged;
+import dev.ancaria.coderpack.api.event.HealthChanged;
 import dev.ancaria.coderpack.api.event.Hero;
+import dev.ancaria.coderpack.api.event.Kill;
 import dev.ancaria.coderpack.api.event.LevelUp;
+import dev.ancaria.coderpack.api.event.Load;
+import dev.ancaria.coderpack.api.event.Loot;
+import dev.ancaria.coderpack.api.event.MaxHealthChanged;
 import dev.ancaria.coderpack.api.event.MobDeath;
 import dev.ancaria.coderpack.api.event.MobHit;
 import dev.ancaria.coderpack.api.event.Moved;
 import dev.ancaria.coderpack.api.event.NearDeath;
 import dev.ancaria.coderpack.api.event.Pickup;
 import dev.ancaria.coderpack.api.event.Position;
+import dev.ancaria.coderpack.api.event.Quest;
+import dev.ancaria.coderpack.api.event.Region;
+import dev.ancaria.coderpack.api.event.Resurrection;
+import dev.ancaria.coderpack.api.event.Save;
+import dev.ancaria.coderpack.api.event.Sector;
 import dev.ancaria.coderpack.api.event.Skill;
+import dev.ancaria.coderpack.api.event.SkillChanged;
+import dev.ancaria.coderpack.api.event.SkillPointsChanged;
+import dev.ancaria.coderpack.api.event.Spawn;
 import dev.ancaria.coderpack.api.event.Stored;
+import dev.ancaria.coderpack.api.event.Trade;
 import dev.ancaria.coderpack.api.event.Unknown;
-import dev.ancaria.coderpack.api.event.Amount;
 import dev.ancaria.coderpack.api.event.World;
 import dev.ancaria.selfcheck.model.HeroInfo;
 import dev.ancaria.selfcheck.view.SelfCheckWindow;
@@ -28,6 +53,7 @@ import dev.ancaria.selfcheck.view.Ui;
 import dev.ancaria.selfcheck.viewmodel.SelfCheckModel;
 import javafx.application.Platform;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -127,7 +153,7 @@ public final class SelfCheckMod extends SacredMod {
     }
 
     /**
-     * The two Game calls, off the bus thread. A command is a round trip through
+     * The one-off Game calls, off the bus thread. A command is a round trip through
      * the host, and asking for one from inside a listener is how a mod ends up
      * waiting for a reply that cannot arrive until the listener returns.
      */
@@ -144,13 +170,41 @@ public final class SelfCheckMod extends SacredMod {
             } else {
                 model.fail(Checks.TYPE_NAME, "getTypeName(9) returned " + type);
             }
+            // Back the other way: the name just read has to find the same id.
+            if (type != null) {
+                int id = game.getTypeRegistry().getTypeId(type);
+                if (id == 9) {
+                    model.pass(Checks.TYPE_ID, "getTypeId(" + type + ") = 9");
+                } else {
+                    model.fail(Checks.TYPE_ID, "getTypeId(" + type + ") returned " + id);
+                }
+            }
             String label = game.getUiString("UI_STATS_VICTORY");
             if (label != null && !label.isBlank()) {
                 model.pass(Checks.UI_STRING, "UI_STATS_VICTORY = " + label);
             } else {
                 model.fail(Checks.UI_STRING, "The dictionary returned nothing");
             }
+            creatures(game);
         });
+    }
+
+    /** The world's creature list, and one of them asked for again by ref. */
+    private void creatures(Game game) {
+        List<Creature> all = game.getWorld().getEntityRegistry().getCreatures();
+        if (all.isEmpty()) {
+            model.fail(Checks.CREATURES, "getCreatures() came back empty");
+            return;
+        }
+        Creature some = all.get(0);
+        Creature again = game.getWorld().getEntityRegistry().getCreature(some.getRef());
+        if (again == null) {
+            model.fail(Checks.CREATURES, all.size() + " creatures, but getCreature("
+                                         + some.getRef() + ") found nothing");
+            return;
+        }
+        model.pass(Checks.CREATURES, all.size() + " creatures; getCreature("
+                                     + some.getRef() + ") = " + again);
     }
 
     /**
@@ -195,6 +249,92 @@ public final class SelfCheckMod extends SacredMod {
     }
 
     @Subscribe
+    public void onSaveLoaded(Load event) {
+        String what = event.isFresh() ? "a new game" : "slot " + event.getSlot();
+        if (!event.isDone()) {
+            model.event("Loading " + what + " from " + event.getPath());
+            return;
+        }
+        model.pass(Checks.LOAD, "Loaded " + what + " from " + event.getPath());
+    }
+
+    @Subscribe
+    public void onSave(Save event) {
+        String where = "slot " + event.getSlot() + " “" + event.getName() + "”, "
+                       + event.getPath();
+        if (event.isOk()) {
+            model.pass(Checks.SAVE, "Saved " + where);
+        } else {
+            model.fail(Checks.SAVE, "The game reported the save to " + where + " as failed");
+        }
+    }
+
+    @Subscribe
+    public void onQuest(Quest event) {
+        if (event.isStarted()) {
+            model.pass(Checks.QUEST_START, "Quest " + event.getNumber());
+        } else {
+            model.pass(Checks.QUEST_END, "Quest " + event.getNumber()
+                                         + ", end flag " + event.getEndFlag());
+        }
+    }
+
+    /**
+     * Claims one console line as this mod's own and answers it in the console.
+     *
+     * <p>The veto is the claim: the game never sees the line and prints no
+     * error. The answer is a command, so it goes out from the prober thread;
+     * this is a deciding listener and the game thread is waiting on it.
+     */
+    @Subscribe
+    public Console.Mutation onConsole(Console event) {
+        String line = event.getText().strip();
+        model.event("Console: " + line);
+        if (!line.equalsIgnoreCase(Checks.COMMAND)) {
+            return Console.Mutation.none();
+        }
+        prober.execute(() -> {
+            String answer = "Self Check: " + model.passedCount() + " of " + model.total()
+                            + " scenarios passed";
+            getContext().getGame().getConsole().print(answer);
+            model.pass(Checks.CONSOLE, "Claimed “" + line + "” and answered: " + answer);
+        });
+        return Console.Mutation.veto();
+    }
+
+    // ---- world -----------------------------------------------------------
+
+    @Subscribe
+    public void onRegion(Region event) {
+        if (event.isEntered()) {
+            model.pass(Checks.REGION, "Entered region " + event.getId() + " from " + event.getFrom());
+        } else {
+            model.event("Left region " + event.getId());
+        }
+    }
+
+    @Subscribe
+    public void onSector(Sector event) {
+        model.tally(Checks.SECTOR, "Sector " + event.getX() + ", " + event.getY());
+    }
+
+    @Subscribe
+    public void onDiscovery(Discovery event) {
+        model.pass(Checks.DISCOVERY, event.getAreas() + " areas discovered");
+    }
+
+    @Subscribe
+    public void onSpawn(Spawn event) {
+        Creature creature = event.getCreature();
+        model.tally(Checks.SPAWN, creature + " at " + creature.getX() + ", " + creature.getY());
+    }
+
+    @Subscribe
+    public void onDespawn(Despawn event) {
+        model.tally(Checks.DESPAWN, event.getCreature().toString());
+    }
+
+    @Subscribe
     public void onPosition(Position event) {
         model.pass(Checks.POSITION, event.getHudX() + ", " + event.getHudY());
     }
@@ -224,6 +364,23 @@ public final class SelfCheckMod extends SacredMod {
     }
 
     @Subscribe
+    public void onHealthChanged(HealthChanged event) {
+        // Regeneration moves this every few frames, so it is tallied.
+        model.tally(Checks.HEALTH_CHANGED, event.getKind() + " " + event.getPrevious() + " → "
+                                           + event.getHp() + " of " + event.getMaxHp());
+    }
+
+    @Subscribe
+    public void onMaxHealth(MaxHealthChanged event) {
+        model.pass(Checks.MAX_HEALTH, event.getPrevious() + " → " + event.getMaxHp());
+    }
+
+    @Subscribe
+    public void onResurrection(Resurrection event) {
+        model.pass(Checks.RESURRECTION, "Resurrection number " + event.getCount());
+    }
+
+    @Subscribe
     public void onNearDeath(NearDeath event) {
         model.pass(Checks.NEAR_DEATH, event.getHp() + " HP left, " + event.getPercent() + "%");
     }
@@ -243,6 +400,23 @@ public final class SelfCheckMod extends SacredMod {
     @Subscribe
     public void onMobDeath(MobDeath event) {
         model.pass(Checks.MOB_DEATH, event.getTypeName() + " at level " + event.getLevel());
+    }
+
+    @Subscribe
+    public void onKill(Kill event) {
+        model.pass(Checks.KILL, event.getTypeName() + ", kill number " + event.getTotal());
+    }
+
+    @Subscribe
+    public void onLoot(Loot event) {
+        List<Loot.Drop> items = event.getItems();
+        String what = items.size() + (items.size() == 1 ? " item" : " items") + " from "
+                      + (event.getSourceTypeName() == null ? "#" + event.getSourceRef()
+                                                           : event.getSourceTypeName());
+        if (!items.isEmpty()) {
+            what += ": " + items.get(0).getTypeName() + (items.size() > 1 ? " and more" : "");
+        }
+        model.pass(event.isChest() ? Checks.LOOT_CHEST : Checks.LOOT_DROP, what);
     }
 
     // ---- progression -----------------------------------------------------
@@ -301,6 +475,61 @@ public final class SelfCheckMod extends SacredMod {
     }
 
     @Subscribe
+    public void onGoldChanged(GoldChanged event) {
+        model.pass(Checks.GOLD_CHANGED, "Now " + event.getGold() + " ("
+                                        + (event.getDelta() >= 0 ? "+" : "") + event.getDelta() + ")");
+    }
+
+    @Subscribe
+    public void onExperienceChanged(ExperienceChanged event) {
+        model.pass(Checks.EXPERIENCE_CHANGED, event.getPrevious() + " → " + event.getExp());
+    }
+
+    @Subscribe
+    public void onSkillChanged(SkillChanged event) {
+        model.pass(Checks.SKILL_CHANGED, "Slot " + event.getSlot() + " is now " + event.getLevel());
+    }
+
+    @Subscribe
+    public void onSkillPoints(SkillPointsChanged event) {
+        model.pass(Checks.SKILL_POINTS, event.getPrevious() + " → " + event.getPoints()
+                                        + (event.isGranted() ? ", granted" : ", spent"));
+    }
+
+    @Subscribe
+    public void onAttributeChanged(AttributeChanged event) {
+        model.pass(Checks.ATTRIBUTE_CHANGED, event.getName() + " " + event.getPrevious()
+                                             + " → " + event.getValue());
+    }
+
+    @Subscribe
+    public void onAttributePoints(AttributePointsChanged event) {
+        model.pass(Checks.ATTRIBUTE_POINTS, event.getPrevious() + " → " + event.getPoints()
+                                            + (event.isGranted() ? ", granted" : ", spent"));
+    }
+
+    @Subscribe
+    public CombatArt.Mutation onCombatArt(CombatArt event) {
+        String art = "Art #" + event.getArtId() + "/" + event.getAspect();
+        if (taken(event)) {
+            model.pass(Checks.COMBAT_ART, art + "; another mod is setting it");
+            return CombatArt.Mutation.none();
+        }
+        // The same value, as with skills: a rune is the player's to spend, and
+        // this only proves the verdict travels.
+        model.pass(Checks.COMBAT_ART, art + " " + event.getPrevious() + " → "
+                                      + event.getValue() + "; answered with the same value");
+        return CombatArt.Mutation.change(event.getValue());
+    }
+
+    @Subscribe
+    public void onCombatArtChanged(CombatArtChanged event) {
+        model.pass(Checks.COMBAT_ART_CHANGED, "Art #" + event.getArtId() + "/" + event.getAspect()
+                                              + " " + event.getPrevious() + " → "
+                                              + event.getLevel());
+    }
+
+    @Subscribe
     public void onLevel(LevelUp event) {
         model.pass(Checks.LEVEL, event.getPrevious() + " → " + event.getLevel());
     }
@@ -340,6 +569,25 @@ public final class SelfCheckMod extends SacredMod {
         model.pass(Checks.EQUIP, event.isOff()
                 ? "Unequipped slot " + event.getSlot()
                 : "Equipped " + event.getItem().getTypeName() + " in slot " + event.getSlot());
+    }
+
+    @Subscribe
+    public void onDrink(Drink event) {
+        if (!event.isPlayer()) {
+            model.event("A creature drank " + event.getTypeName());
+            return;
+        }
+        model.pass(Checks.DRINK, event.getTypeName());
+    }
+
+    @Subscribe
+    public void onTrade(Trade event) {
+        if (event.isBought()) {
+            model.pass(Checks.BUY, event.getTypeName() + " for " + event.getPrice() + " gold");
+        } else {
+            model.pass(Checks.SELL, event.getTypeName() + " for " + event.getPrice() + " gold, "
+                                    + (event.isQuick() ? "by Shift+click" : "by dragging"));
+        }
     }
 
     @Subscribe
