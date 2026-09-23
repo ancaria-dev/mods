@@ -1,6 +1,6 @@
 package dev.ancaria.runes;
 
-import dev.ancaria.coderpack.api.Game;
+import dev.ancaria.coderpack.api.TypeRegistry;
 import dev.ancaria.coderpack.api.entity.HeroClass;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ final class Owners {
     private int unresolved;
 
     /** Reads the table, writing the seed first if the player has no copy yet. */
-    static Owners load(Path directory, Game game) throws IOException {
+    static Owners load(Path directory, TypeRegistry types) throws IOException {
         Path file = directory.resolve(FILE);
         if (!Files.exists(file)) {
             try (InputStream seed = Owners.class.getResourceAsStream(SEED)) {
@@ -53,15 +53,15 @@ final class Owners {
         }
         Owners owners = new Owners();
         if (Files.exists(file)) {
-            owners.parse(Files.readAllLines(file, StandardCharsets.UTF_8), ids(game));
+            owners.parse(Files.readAllLines(file, StandardCharsets.UTF_8), ids(types));
         }
         return owners;
     }
 
     /** Both rune families, resolved to ids in two round-trips. */
-    private static Map<String, Integer> ids(Game game) {
-        Map<String, Integer> all = new HashMap<>(game.types("TYPE_SMOVE_UPGRADE_"));
-        all.putAll(game.types("TYPE_SPELL_UPGRADE_"));
+    private static Map<String, Integer> ids(TypeRegistry types) {
+        Map<String, Integer> all = new HashMap<>(types.types("TYPE_SMOVE_UPGRADE_"));
+        all.putAll(types.types("TYPE_SPELL_UPGRADE_"));
         return all;
     }
 

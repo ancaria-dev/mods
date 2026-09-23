@@ -30,7 +30,7 @@ final class Mine {
 
     /** Remembers one rune per type. The same rune twice teaches nothing. */
     void remember(Item rune) {
-        if (types.add(rune.typeId())) {
+        if (types.add(rune.getTypeId())) {
             templates.add(rune);
         }
     }
