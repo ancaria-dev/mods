@@ -14,6 +14,7 @@ import java.util.List;
 final class Checks {
 
     static final String HERO = "hero";
+    static final String HERO_INFO = "hero-info";
     static final String WORLD = "world";
     static final String POSITION = "position";
     static final String HEALTH = "health";
@@ -39,6 +40,7 @@ final class Checks {
             Scenario.seen(HERO, "Hero is captured"),
             Scenario.seen(TYPE_NAME, "Game answers getTypeName"),
             Scenario.seen(UI_STRING, "Game answers getUiString"),
+            Scenario.seen(HERO_INFO, "Hero is read through the API"),
             Scenario.seen(POSITION, "Player moves"),
             Scenario.mutates(HEALTH, "Damage softened by 1 HP"),
             Scenario.seen(NEAR_DEATH, "Near death is announced"),

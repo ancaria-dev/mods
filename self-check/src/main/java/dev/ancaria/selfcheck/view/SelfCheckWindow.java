@@ -1,5 +1,6 @@
 package dev.ancaria.selfcheck.view;
 
+import dev.ancaria.selfcheck.model.HeroInfo;
 import dev.ancaria.selfcheck.model.Line;
 import dev.ancaria.selfcheck.model.Status;
 import dev.ancaria.selfcheck.viewmodel.CheckRow;
@@ -12,7 +13,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -43,8 +47,8 @@ public final class SelfCheckWindow {
         Stage stage = new Stage();
         stage.setTitle("Self Check");
         stage.setScene(scene());
-        stage.setWidth(980);
-        stage.setHeight(660);
+        stage.setWidth(1040);
+        stage.setHeight(800);
         stage.show();
     }
 
@@ -85,11 +89,17 @@ public final class SelfCheckWindow {
 
     private Region body() {
         VBox left = column("Scenarios", checkList());
-        VBox right = column("Log", logList());
+        VBox hero = column("Hero", heroPanel());
+        VBox log = column("Log", logList());
+        // The hero gets what it needs and the log the rest, so a long session
+        // still has room to scroll through.
+        VBox.setVgrow(hero, Priority.NEVER);
+        VBox.setVgrow(log, Priority.ALWAYS);
+        VBox right = new VBox(0, hero, log);
         HBox.setHgrow(left, Priority.ALWAYS);
         HBox.setHgrow(right, Priority.ALWAYS);
         left.setPrefWidth(430);
-        right.setPrefWidth(530);
+        right.setPrefWidth(590);
 
         HBox split = new HBox(16, left, right);
         split.setPadding(new Insets(0, 22, 20, 22));
@@ -139,6 +149,68 @@ public final class SelfCheckWindow {
     }
 
     /**
+     * The hero as the last reading left it. Rebuilt whole on every reading
+     * rather than bound field by field: a reading is replaced, never edited,
+     * and there are few enough labels that building them is nothing.
+     */
+    private Region heroPanel() {
+        Label status = new Label();
+        status.getStyleClass().add("hero-status");
+
+        GridPane sections = new GridPane();
+        sections.setHgap(22);
+        sections.setVgap(12);
+        ColumnConstraints half = new ColumnConstraints();
+        half.setPercentWidth(50);
+        sections.getColumnConstraints().addAll(half, half);
+
+        VBox content = new VBox(10, status, sections);
+        content.getStyleClass().add("hero");
+
+        Runnable show = () -> {
+            HeroInfo info = model.hero().get();
+            status.setText(info.status());
+            sections.getChildren().clear();
+            int index = 0;
+            for (HeroInfo.Section section : info.sections()) {
+                sections.add(section(section), index % 2, index / 2);
+                index++;
+            }
+        };
+        show.run();
+        model.hero().addListener((observable, before, after) -> show.run());
+
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.getStyleClass().add("hero-scroll");
+        scroll.setPrefHeight(300);
+        scroll.setMinHeight(300);
+        return scroll;
+    }
+
+    private static VBox section(HeroInfo.Section section) {
+        Label title = new Label(section.title().toUpperCase());
+        title.getStyleClass().add("hero-section");
+        GridPane fields = new GridPane();
+        fields.setHgap(10);
+        fields.setVgap(2);
+        int row = 0;
+        for (HeroInfo.Field field : section.fields()) {
+            Label label = new Label(field.label());
+            label.getStyleClass().add("hero-label");
+            label.setMinWidth(Region.USE_PREF_SIZE);
+            Label value = new Label(field.value());
+            value.getStyleClass().add("hero-value");
+            value.setWrapText(true);
+            fields.add(label, 0, row);
+            fields.add(value, 1, row);
+            row++;
+        }
+        return new VBox(4, title, fields);
+    }
+
+    /**
      * The log is a list of styled text rather than a text area: a TextArea would
      * be one string to append to, and appending to a string a thousand times is
      * how a UI thread stops being one.
@@ -160,7 +232,7 @@ public final class SelfCheckWindow {
                 Text body = new Text(line.text());
                 body.getStyleClass().addAll("log-text", "log-" + line.level().name().toLowerCase());
                 TextFlow flow = new TextFlow(at, body);
-                flow.setMaxWidth(470);
+                flow.setMaxWidth(530);
                 setGraphic(flow);
             }
         });

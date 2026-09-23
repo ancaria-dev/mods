@@ -91,3 +91,43 @@
 .log-change { -fx-fill: #c8a45c; }
 .log-pass   { -fx-fill: #7fb069; }
 .log-fail   { -fx-fill: #d1655b; }
+
+/* The hero panel sits in the same frame as the lists, so it reads as one of them. */
+.hero-scroll {
+    -fx-background-color: #1f1c17;
+    -fx-background-radius: 10;
+    -fx-border-color: #322d24;
+    -fx-border-radius: 10;
+    -fx-padding: 4;
+}
+
+.hero-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.hero {
+    -fx-background-color: transparent;
+    -fx-padding: 8 12 10 12;
+}
+
+.hero-status {
+    -fx-text-fill: #6f685a;
+    -fx-font-size: 11px;
+}
+
+.hero-section {
+    -fx-text-fill: #c8a45c;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.hero-label {
+    -fx-text-fill: #9a9280;
+    -fx-font-size: 11.5px;
+}
+
+.hero-value {
+    -fx-text-fill: #e8e2d4;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 11.5px;
+}

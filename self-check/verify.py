@@ -20,10 +20,18 @@ CODERPACK = "0.200.0"
 JAR = HERE / "build" / "sacred-mod" / "self-check-0.100.0.jar"
 MODS = HERE / "build" / "verify-mods"
 
-# The host's half of the two commands the mod makes at startup.
+# The host's half of the commands the mod makes: the two probes at startup,
+# and the readings behind the hero panel, asked again every two seconds.
 ANSWERS = {
     "type.name": "ok=1 name=TYPE_NPC_DAEMONIN",
     "ui.string": "ok=1 text=Opponents%20Defeated",
+    "player.attributes": "values=141,90,120,30,40,25 points=4",
+    "player.skills": "levels=61,40,0,22,0,0,0,0 points=2",
+    "player.arts": "arts=0:12:0:15:3;1:14:1:8:0;2:20:0:0:0",
+    "player.stats": "kills=4210 resurrections=3 areas=188 graph=2 "
+                    "playMillis=51000000 sinceDeath=600000 survival=1.25",
+    "player.sheet": "armor=62 attackSpeed=140 move=120 resist=30,45,20,50",
+    "world.state": "region=12 sx=40 sy=77",
 }
 
 # One frame per scenario, in the order a session would produce them.

@@ -22,10 +22,15 @@ import dev.ancaria.coderpack.api.event.Stored;
 import dev.ancaria.coderpack.api.event.Unknown;
 import dev.ancaria.coderpack.api.event.Amount;
 import dev.ancaria.coderpack.api.event.World;
+import dev.ancaria.selfcheck.model.HeroInfo;
 import dev.ancaria.selfcheck.view.SelfCheckWindow;
 import dev.ancaria.selfcheck.view.Ui;
 import dev.ancaria.selfcheck.viewmodel.SelfCheckModel;
 import javafx.application.Platform;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Subscribes to everything and shows what arrived.
@@ -43,13 +48,33 @@ import javafx.application.Platform;
  */
 public final class SelfCheckMod extends SacredMod {
 
+    /** How often the hero panel asks again while a hero is loaded. */
+    private static final long HERO_EVERY_SECONDS = 2;
+
     private SelfCheckModel model;
     private boolean probed;
+    /**
+     * The one thread that asks the game anything. A command is a round trip
+     * through the host and can take two seconds; the bus thread must never be
+     * the one waiting for it.
+     */
+    private ScheduledExecutorService prober;
+    /** Touched only on the prober thread. */
+    private boolean heroRead;
+    private boolean heroFailed;
+    private boolean heroMissing;
 
     @Override
     public void onLoad() {
         this.model = new SelfCheckModel(Checks.ALL);
+        this.prober = Executors.newSingleThreadScheduledExecutor(task -> {
+            Thread thread = new Thread(task, "self-check-probe");
+            thread.setDaemon(true);
+            return thread;
+        });
         getContext().getRegistry().getEventRegistry().register(this);
+        prober.scheduleWithFixedDelay(this::readHero, HERO_EVERY_SECONDS, HERO_EVERY_SECONDS,
+                                      TimeUnit.SECONDS);
 
         if (!Ui.boot()) {
             getContext().log("JavaFX is unavailable in this JVM; Self Check will run without a window");
@@ -57,6 +82,13 @@ public final class SelfCheckMod extends SacredMod {
         }
         Platform.runLater(() -> new SelfCheckWindow(model).show());
         getContext().log("Window opened; waiting for events");
+    }
+
+    @Override
+    public void onUnload() {
+        if (prober != null) {
+            prober.shutdownNow();
+        }
     }
 
     // ---- session ---------------------------------------------------------
@@ -89,6 +121,9 @@ public final class SelfCheckMod extends SacredMod {
     public void onHero(Hero event) {
         model.pass(Checks.HERO, event.getClassName() + ", level " + event.getLevel());
         probe();
+        // Straight away rather than at the next tick: the panel should not sit
+        // empty for two seconds after the hero appears.
+        prober.execute(this::readHero);
     }
 
     /**
@@ -101,7 +136,7 @@ public final class SelfCheckMod extends SacredMod {
             return;
         }
         probed = true;
-        Thread worker = new Thread(() -> {
+        prober.execute(() -> {
             Game game = getContext().getGame();
             String type = game.getTypeRegistry().getTypeName(9);
             if (type != null && type.startsWith("TYPE_")) {
@@ -115,9 +150,48 @@ public final class SelfCheckMod extends SacredMod {
             } else {
                 model.fail(Checks.UI_STRING, "The dictionary returned nothing");
             }
-        }, "self-check-probe");
-        worker.setDaemon(true);
-        worker.start();
+        });
+    }
+
+    /**
+     * One reading of the hero for the panel, on the prober thread. It passes
+     * its scenario once, on the first reading that came back whole; later
+     * readings only refresh the panel, so the log is not a line every two
+     * seconds.
+     */
+    private void readHero() {
+        HeroProbe.Reading reading;
+        try {
+            reading = HeroProbe.read(getContext().getGame());
+        } catch (RuntimeException failure) {
+            // A scheduled task that throws is never run again. One bad reading
+            // must not end the panel.
+            model.hero(HeroInfo.waiting("Reading failed: " + failure));
+            if (!heroRead && !heroFailed) {
+                heroFailed = true;
+                model.fail(Checks.HERO_INFO, "Reading the hero threw " + failure);
+            }
+            return;
+        }
+        if (reading == null) {
+            if (!heroMissing) {
+                heroMissing = true;
+                model.hero(HeroInfo.waiting("No hero is loaded"));
+            }
+            return;
+        }
+        heroMissing = false;
+        model.hero(reading.info());
+        if (heroRead) {
+            return;
+        }
+        if (reading.complete()) {
+            heroRead = true;
+            model.pass(Checks.HERO_INFO, reading.summary());
+        } else if (!heroFailed) {
+            heroFailed = true;
+            model.fail(Checks.HERO_INFO, "Some answers came back empty; asking again");
+        }
     }
 
     @Subscribe

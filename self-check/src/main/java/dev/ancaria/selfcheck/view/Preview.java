@@ -1,5 +1,6 @@
 package dev.ancaria.selfcheck.view;
 
+import dev.ancaria.selfcheck.model.HeroInfo;
 import dev.ancaria.selfcheck.model.Scenario;
 import dev.ancaria.selfcheck.viewmodel.SelfCheckModel;
 import javafx.application.Platform;
@@ -53,6 +54,27 @@ public final class Preview {
         model.change("Damage softened: 860 → 861");
         model.pass("health", "Kept 1 HP back (860 → 861)");
         model.fail("gold", "Pretend failure so the red box is visible too");
+        model.hero(new HeroInfo("Read at 14:05:31", List.of(
+                new HeroInfo.Section("Hero", List.of(
+                        new HeroInfo.Field("Class", "Daemon"),
+                        new HeroInfo.Field("Level", "34"),
+                        new HeroInfo.Field("HP", "861 / 1200"),
+                        new HeroInfo.Field("Gold", "51230"),
+                        new HeroInfo.Field("Experience", "9400000"),
+                        new HeroInfo.Field("Position", "222850, 137608"),
+                        new HeroInfo.Field("Region", "12"),
+                        new HeroInfo.Field("Sector", "40, 77"))),
+                new HeroInfo.Section("Attributes", List.of(
+                        new HeroInfo.Field("Strength", "141"),
+                        new HeroInfo.Field("Endurance", "90"),
+                        new HeroInfo.Field("Points to spend", "4"))),
+                new HeroInfo.Section("Combat arts", List.of(
+                        new HeroInfo.Field("Learned", "2 of 3"),
+                        new HeroInfo.Field("Levels", "#12/0 15+3,  #14/1 8"))),
+                new HeroInfo.Section("Character sheet", List.of(
+                        new HeroInfo.Field("Armor", "62%"),
+                        new HeroInfo.Field("Resistances",
+                                "physical 30,  fire 45,  magic 20,  poison 50"))))));
         Thread.sleep(120_000);
         Platform.exit();
     }

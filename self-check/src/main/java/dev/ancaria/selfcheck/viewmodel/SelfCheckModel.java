@@ -1,11 +1,15 @@
 package dev.ancaria.selfcheck.viewmodel;
 
+import dev.ancaria.selfcheck.model.HeroInfo;
 import dev.ancaria.selfcheck.model.Line;
 import dev.ancaria.selfcheck.model.Scenario;
 import dev.ancaria.selfcheck.model.Status;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,6 +33,8 @@ public final class SelfCheckModel {
     private final ObservableList<CheckRow> checks = FXCollections.observableArrayList();
     private final Map<String, CheckRow> byKey = new LinkedHashMap<>();
     private final ObservableList<Line> log = FXCollections.observableArrayList();
+    private final ObjectProperty<HeroInfo> hero =
+            new SimpleObjectProperty<>(HeroInfo.waiting("No hero is loaded"));
 
     public SelfCheckModel(List<Scenario> scenarios) {
         for (Scenario scenario : scenarios) {
@@ -44,6 +50,16 @@ public final class SelfCheckModel {
 
     public ObservableList<Line> log() {
         return log;
+    }
+
+    /** The latest reading of the hero, replaced whole each time. */
+    public ReadOnlyObjectProperty<HeroInfo> hero() {
+        return hero;
+    }
+
+    /** A new reading of the hero, from any thread. */
+    public void hero(HeroInfo info) {
+        onFx(() -> hero.set(info));
     }
 
     /** Passed out of total, recomputed by the list itself whenever a row changes. */
