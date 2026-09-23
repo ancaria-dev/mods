@@ -80,9 +80,9 @@ after the window closes, so the zygote must continue to terminate the JVM on
 closes it in `onUnload`, which the loader calls on `BYE`, on a closed pipe and
 on unregistering the mod. The trace stays in its own file rather than
 `mods.log`, where `context.log` writes: it is the mod's product. `Recorder`
-owns the single base-`Event` listener
-and line formatting. `Ring` owns the fixed 8,192-line buffer. `Sink` owns the
-daemon writer thread and batched disk flushes.
+owns the single base-`Event` listener and line formatting. `Ring` owns the
+fixed 8,192-line buffer. `Sink` owns the daemon writer thread and batched disk
+flushes.
 
 The listener must stay at `Priority.MONITOR`. It records the accumulated
 verdict after `FIRST`, `NORMAL`, and `LAST`, while the event bus discards any
@@ -316,8 +316,7 @@ java -cp self-check/build/sacred-mod/self-check-0.200.0.jar dev.ancaria.selfchec
 jars in Maven Local, at the version its `CODERPACK` names. It starts the zygote,
 acts as the host, sends a frame for every scenario, answers the mod's commands,
 and checks all ten decided verdicts and the console answer without the game.
-The preview command opens the UI
-without a game session.
+The preview command opens the UI without a game session.
 
 ## Repository boundaries
 
