@@ -47,9 +47,11 @@ SCRIPT = [
     ("ASK 3 gold.delta delta=-90 current=51480 dir=spend", "END 3 ok=1"),
     ("ASK 4 exp.gain gain=1180 prev=9400000 next=9401180",
      "END 4 set.next=9401181"),
-    ("ASK 5 skill.change slot=2 delta=1 prev=61 next=62", "END 5 set.next=62"),
+    # Answered with the value the game proposed, which folds to no change,
+    # so the bus sends a plain ok rather than a set of the same number.
+    ("ASK 5 skill.change slot=2 delta=1 prev=61 next=62", "END 5 ok=1"),
     ("ASK 6 attr.spend attr=0 name=Strength prev=141 next=142",
-     "END 6 set.next=142"),
+     "END 6 ok=1"),
     ("ASK 7 item.pickup ref=1083 type=5171 name=TYPE_OBJECT_POTION_SMALL_RED "
      "level=0 min=0 atk=0 prot=0 pct=20 player=1", "END 7 set.type=5171"),
 
