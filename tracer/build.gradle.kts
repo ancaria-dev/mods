@@ -2,7 +2,7 @@ plugins {
     id("dev.ancaria.coderpack")
 }
 
-version = "0.100.0"
+version = "0.200.0"
 
 sacred {
     id = "tracer"
