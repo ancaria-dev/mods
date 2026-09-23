@@ -31,11 +31,12 @@ public final class Preview {
             return;
         }
         SelfCheckModel model = new SelfCheckModel(List.of(
-                Scenario.seen("world", "World loads and unloads"),
-                Scenario.seen("hero", "Hero is captured"),
-                Scenario.mutates("health", "Damage softened by 1 HP"),
-                Scenario.mutates("gold", "Gold gain raised by 1"),
-                Scenario.seen("level", "Level goes up")));
+                Scenario.seen("world", "World loads and unloads", "Load a save or start a new game"),
+                Scenario.seen("hero", "Hero is captured", "Enter the game with any character"),
+                Scenario.mutates("health", "Damage softened by 1 HP", "Let a monster hit you"),
+                Scenario.mutates("gold", "Gold gain raised by 1", "Pick up gold"),
+                Scenario.seen("level", "Level goes up",
+                        "Earn enough experience to reach the next level")));
 
         // Through a FutureTask rather than a bare runLater: an exception on the
         // FX thread is otherwise printed into whatever else the process is

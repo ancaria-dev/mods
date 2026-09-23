@@ -29,6 +29,10 @@ public final class CheckRow {
         return scenario.title();
     }
 
+    public String hint() {
+        return scenario.hint();
+    }
+
     public ReadOnlyObjectProperty<Status> statusProperty() {
         return status;
     }

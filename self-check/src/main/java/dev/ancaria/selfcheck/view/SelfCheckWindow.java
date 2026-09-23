@@ -134,13 +134,19 @@ public final class SelfCheckWindow {
                 Label title = new Label(row.title());
                 title.getStyleClass().add("check-title");
 
+                // How to get there, under the name, so a waiting row says
+                // what it is waiting for.
+                Label hint = new Label(row.hint());
+                hint.getStyleClass().add("check-hint");
+                hint.setWrapText(true);
+
                 Label detail = new Label();
                 detail.getStyleClass().add("check-detail");
                 detail.textProperty().bind(row.detailProperty());
                 detail.visibleProperty().bind(row.detailProperty().isNotEmpty());
                 detail.managedProperty().bind(detail.visibleProperty());
 
-                HBox line = new HBox(10, mark, new VBox(2, title, detail));
+                HBox line = new HBox(10, mark, new VBox(2, title, hint, detail));
                 line.setAlignment(Pos.CENTER_LEFT);
                 setGraphic(line);
             }
