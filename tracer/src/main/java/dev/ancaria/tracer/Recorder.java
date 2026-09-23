@@ -46,7 +46,7 @@ final class Recorder {
         for (int pad = name.length(); pad < NAME_WIDTH; pad++) {
             line.append(' ');
         }
-        for (Map.Entry<String, String> field : event.fields().entrySet()) {
+        for (Map.Entry<String, String> field : event.getFields().entrySet()) {
             line.append(' ').append(field.getKey()).append('=').append(field.getValue());
         }
         verdict(event, line);
@@ -56,10 +56,10 @@ final class Recorder {
     /** The wire name where the SDK has no type, the type's own name otherwise. */
     private static String name(Event event) {
         if (event instanceof Unknown unknown) {
-            return unknown.name();
+            return unknown.getName();
         }
         if (event instanceof World world) {
-            return "World." + world.phase();
+            return "World." + world.getPhase();
         }
         return event.getClass().getSimpleName();
     }
@@ -69,19 +69,19 @@ final class Recorder {
      *
      * <p>A tracer is MONITOR, so it runs last and reads the fold rather than a
      * list of pending writes. That is the whole reason this is trustworthy now:
-     * value() is what the game is about to be told, not what it proposed.
+     * getValue() is what the game is about to be told, not what it proposed.
      */
     private static void verdict(Event event, StringBuilder line) {
         if (!(event instanceof Decision decision)) {
             return;
         }
-        if (decision.vetoed()) {
+        if (decision.isVetoed()) {
             line.append("   → vetoed");
             return;
         }
-        if (event instanceof Amount amount && amount.value() != amount.initial()) {
-            line.append("   → ").append(amount.initial())
-                .append(" → ").append(amount.value());
+        if (event instanceof Amount amount && amount.getValue() != amount.getInitial()) {
+            line.append("   → ").append(amount.getInitial())
+                .append(" → ").append(amount.getValue());
         }
     }
 }
