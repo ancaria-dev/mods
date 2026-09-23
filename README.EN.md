@@ -25,7 +25,7 @@ Private repositories can use an access token.
 
 | Mod | What it does |
 |---|---|
-| [`self-check`](self-check) | Subscribes to every loader event and opens a window with 20 scenarios. White means unseen, green means passed, and red means an unexpected result. For events that accept an answer, the mod checks the full trip from the game to the JVM and back. |
+| [`self-check`](self-check) | Subscribes to every loader event and opens a window with 50 scenarios, each with a line saying how to pass it, and a panel of live hero data read through the API. White means unseen, green means passed, and red means an unexpected result. For events that accept an answer, the mod checks the full trip from the game to the JVM and back. |
 | [`tracer`](tracer) | Writes every event to `<Sacred Gold>/logs/logs-<time>.txt`, one file per run. All listeners use `MONITOR` priority, so Tracer records the final answer and cannot change it. |
 | [`old-huge-potions`](old-huge-potions) | Replaces each potion picked up by the player with the full-size type of the same kind. It builds the mapping from type names reported by the running game. Only the type changes, so the potion keeps its original price and effect. |
 | [`all-my-runes`](all-my-runes) | Replaces another class's rune with a copy of one of the hero's runes that the mod has already seen. Pick up one of your own first. Unknown runes are left unchanged. |
@@ -58,8 +58,8 @@ gradlew installSacredMod -PsacredDir="C:/Games/Sacred Gold"
 
 The `dev.ancaria.coderpack` plugin and API resolve as published dependencies,
 not from sibling directories: the plugin from the Gradle Plugin Portal, the API
-from Maven Central. `gradle/libs.versions.toml` pins the plugin at `0.101.1`
-and the API at `0.102.0`. Maven Local is checked first, so running
+from Maven Central. `gradle/libs.versions.toml` pins both the plugin and the
+API at `0.200.0`, mod API 3. Maven Local is checked first, so running
 `publishToMavenLocal` in `build` or `coderpack` lets you test an unreleased
 change.
 

@@ -26,7 +26,7 @@ Repositories kann ein Zugriffstoken hinterlegt werden.
 
 | Mod | Was er tut |
 |---|---|
-| [`self-check`](self-check) | Abonniert alle Loader-Ereignisse und öffnet ein Fenster mit 20 Szenarien. Weiß steht für noch nicht gesehen, Grün für bestanden und Rot für ein unerwartetes Ergebnis. Bei Ereignissen mit Antwort prüft die Mod den gesamten Weg vom Spiel zur JVM und zurück. |
+| [`self-check`](self-check) | Abonniert alle Loader-Ereignisse und öffnet ein Fenster mit 50 Szenarien, jedes mit einer Zeile dazu, wie es sich erfüllen lässt, und einer Tafel mit Live-Daten des Helden, gelesen über die API. Weiß steht für noch nicht gesehen, Grün für bestanden und Rot für ein unerwartetes Ergebnis. Bei Ereignissen mit Antwort prüft die Mod den gesamten Weg vom Spiel zur JVM und zurück. |
 | [`tracer`](tracer) | Schreibt jedes Ereignis nach `<Sacred Gold>/logs/logs-<time>.txt`, mit einer Datei pro Start. Alle Listener verwenden die Priorität `MONITOR`. Tracer zeichnet daher die endgültige Antwort auf und kann sie nicht verändern. |
 | [`old-huge-potions`](old-huge-potions) | Ersetzt jeden vom Spieler aufgehobenen Trank durch den größten Typ derselben Art. Die Zuordnung entsteht aus den Typnamen des laufenden Spiels. Nur der Typ ändert sich, daher behält der Trank seinen ursprünglichen Preis und seine Wirkung. |
 | [`all-my-runes`](all-my-runes) | Ersetzt eine Rune für eine fremde Klasse durch die Kopie einer bereits gesehenen Rune des Helden. Zuerst muss eine eigene Rune aufgehoben werden. Unbekannte Runen bleiben unverändert. |
@@ -62,8 +62,8 @@ gradlew installSacredMod -PsacredDir="C:/Games/Sacred Gold"
 Das Plugin `dev.ancaria.coderpack` und die API werden als veröffentlichte
 Abhängigkeiten aufgelöst, nicht über benachbarte Verzeichnisse: das Plugin aus
 dem Gradle Plugin Portal, die API aus Maven Central.
-`gradle/libs.versions.toml` legt das Plugin auf `0.101.1` und die API auf
-`0.102.0` fest. Maven Local wird zuerst geprüft, daher lässt sich mit
+`gradle/libs.versions.toml` legt Plugin und API beide auf `0.200.0` fest,
+die Mod-API 3. Maven Local wird zuerst geprüft, daher lässt sich mit
 `publishToMavenLocal` in `build` oder `coderpack` eine noch unveröffentlichte
 Änderung testen.
 
