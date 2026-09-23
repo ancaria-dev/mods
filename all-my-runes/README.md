@@ -9,10 +9,12 @@ Pick up one rune for your class first. The mod remembers one rune of each type
 for the current session, then chooses at random from those remembered runes
 when it replaces a foreign one.
 
+It says what it did in `<Sacred Gold>/logs/mods.log`:
+
 ```
-[coderpack] all-my-runes: 79 runes are known
-[coderpack] all-my-runes: Leaving the DAEMON rune unchanged until you pick up one of your own to copy
-[coderpack] all-my-runes: Changed TYPE_SMOVE_UPGRADE_DEM_ATTACKE from a DAEMON rune to TYPE_SMOVE_UPGRADE_HARDHIT_SERA
+[2026-09-23 14:05:31.042] [all-my-runes]: 79 runes are known
+[2026-09-23 14:07:12.610] [all-my-runes]: Leaving the DAEMON rune unchanged until you pick up one of your own to copy
+[2026-09-23 14:09:48.217] [all-my-runes]: Changed TYPE_SMOVE_UPGRADE_DEM_ATTACKE from a DAEMON rune to TYPE_SMOVE_UPGRADE_HARDHIT_SERA
 ```
 
 The earlier type-only version changed a rune’s name and appearance without
