@@ -15,8 +15,9 @@ would share it.
 
 Four classes divide the work:
 
-- `TracerMod` opens the log, registers the recorder, and installs the shutdown
-  hook.
+- `TracerMod` opens the log and registers the recorder. Its `onUnload`
+  closes the sink, which the loader calls on `BYE`, when the host's pipe
+  closes, and when the mod is unregistered, so the last batch reaches the disk.
 - `Recorder` contains the single `@Subscribe` method and formats each line.
 - `Ring` stores pending lines. `add` performs no file I/O and never waits for
   free capacity.
@@ -52,3 +53,11 @@ oldest ones. The next written batch marks the loss:
 
 This keeps the most recent history, which is usually the useful end of a trace
 after a failure.
+
+## Why its own file
+
+`getContext().log(...)` writes to `<Sacred Gold>/logs/mods.log`, the file every
+mod shares, and Tracer uses it for its one line about where the trace is going.
+The trace itself stays in its own file: it is what this mod produces, one file
+per run that can be handed to somebody, and thousands of event lines in
+`mods.log` would bury every other mod's.
