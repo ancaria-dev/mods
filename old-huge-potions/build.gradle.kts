@@ -7,7 +7,7 @@ version = "0.200.0"
 sacred {
     id = "old-huge-potions"
     displayName = "Old Huge Potions"
-    description = "Restores Sacred’s original potion system by turning every potion you pick up into the full-size version of its kind."
+    description = "Turns every small or medium potion you pick up into the largest one of its kind, in name and look."
     entrypoint = "dev.ancaria.potions.PotionsMod"
     author("MairwunNx (Pavel Erokhin)")
     website = "https://ancaria.dev"
