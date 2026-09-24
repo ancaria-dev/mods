@@ -12,113 +12,110 @@
 
 # mods
 
-This is the official Sacred Gold mod repository and the source tree for four
-mods. The launcher knows its address from the start. Open the `Available` tab,
-press `Install`, and the verified JAR lands in `<Sacred Gold>/mods`. No manual
-download or file copying is needed.
+The official Sacred Gold mod repository and the source of the four mods in it.
 
-You can add other repositories. The launcher accepts HTTPS clone URLs ending
-in `.git` and reads `sacred.mods.repository.json` from the repository root.
-Private repositories can use an access token.
+The launcher connects to this repository on its own, with nothing to set up.
+You pick a mod, and the launcher downloads it, checks it, and puts it in
+`<Sacred Gold>/mods`.
 
-## What is here
+A mod repository is an ordinary Git repository with an index at its root. You
+can start one for your own mods, and players add it by its URL.
+
+## Getting started
+
+### Install a mod
+
+1. Open the launcher and go to the Available tab.
+2. Press Install next to the mod you want.
+3. Press Play.
+
+### Add another repository
+
+The launcher takes an HTTPS clone URL ending in `.git`. For a private
+repository, add an access token.
+
+### Share your mod
+
+Publish your mod in your own repository using the [SRML](#srml) layout.
+Players can add it right away. To list it in the catalog on the site, press
+Submit your mod on [ancaria.dev/mods](https://ancaria.dev/mods).
+
+## Mods
 
 | Mod | What it does |
 |---|---|
-| [`self-check`](self-check) | Subscribes to every loader event and opens a window with 50 scenarios, each with a line saying how to pass it, and a panel of live hero data read through the API. White means unseen, green means passed, and red means an unexpected result. For events that accept an answer, the mod checks the full trip from the game to the JVM and back. |
-| [`tracer`](tracer) | Writes every event to `<Sacred Gold>/logs/logs-<time>.txt`, one file per run. All listeners use `MONITOR` priority, so Tracer records the final answer and cannot change it. |
-| [`old-huge-potions`](old-huge-potions) | Replaces each potion picked up by the player with the full-size type of the same kind. It builds the mapping from type names reported by the running game. Only the type changes, so the potion keeps its original price and effect. |
-| [`all-my-runes`](all-my-runes) | Replaces another class's rune with a copy of one of the hero's runes that the mod has already seen. Pick up one of your own first. Unknown runes are left unchanged. |
+| [`self-check`](self-check) | Checks that the loader works. It subscribes to every event and opens a window with 50 scenarios, each with a hint on how to pass it. White means not seen yet, green means passed, red means an unexpected result. A side panel shows live hero data. |
+| [`tracer`](tracer) | Writes every event to `<Sacred Gold>/logs/logs-<time>.txt`, one file per run. It sees the final answer from all mods but can't change it. |
+| [`old-huge-potions`](old-huge-potions) | Turns each potion you pick up into the full-size one of the same kind. Only the type changes, so the price and effect stay the same. |
+| [`all-my-runes`](all-my-runes) | Turns another class's rune into a copy of one of your hero's runes. Pick up at least one of your own first. Runes the mod doesn't know stay as they are. |
 
-All four mods work together and none of them declares a conflict.
+All four mods work together without conflicts. Each one sees what the mods
+before it decided, and `self-check` stays out of an event another mod has
+already decided.
 
-`self-check` used to name `old-huge-potions` and `all-my-runes`. All three
-wrote an item's type at pickup, the last listener to run decided, and
-`self-check` ran last: a potion came back as its original type instead of the
-large one, and a rune came back with its original type alongside the copied
-one's price, level and modifiers. Listeners now see what earlier ones decided,
-and `self-check` stands down when another mod has already decided the event,
-so there is nothing left to declare.
+## SRML
 
-## How to build
+SRML stands for Sacred Repository Mod Layout, version 1. Any Git repository
+with `sacred.mods.repository.json` at its root counts as a mod repository.
+This one looks like this:
 
-Put a JDK on `PATH`. The plugin compiles the mods for Java 21.
+```
+sacred.mods.repository.json   the index, generated
+registry.toml                 repository details, written by hand
+icon.png                      the repository icon
+<id>/                         a mod: code, build.gradle.kts, icon.png
+```
+
+Each mod stays an ordinary Gradle project. Name its folder after the mod ID,
+and `coderpack index` adds `source` and `icon` paths to the index. With any
+other name, those fields are left out. In a single-mod repository, the root
+`icon.png` doubles as the mod's icon.
+
+Don't edit the index by hand. The generator reads each mod's details from
+`META-INF/declaration.toml` in the built jar: ID, name, version, description,
+compatibility, authors, website, and conflicts. It takes the repository name,
+site, icon, and release URL template from `registry.toml`. It works out the
+file name, size, SHA-256, and download URL itself.
+
+```
+coderpack index           regenerate the index
+coderpack index --check   check it without writing
+```
+
+Your own repository works the same way. Fill in `registry.toml`, build your
+mods, and run `coderpack index`.
+
+## Building
+
+Put a JDK on `PATH`. The mods compile for Java 21.
 
 ```
 gradlew assembleSacredMod
 ```
 
-This builds all four mods, checks every JAR with the linter, and writes the
-results to `<mod>/build/sacred-mod/`. To install them directly into the game,
-run:
+This builds all four mods, runs the linter on them, and writes the jars to
+`<mod>/build/sacred-mod/`. To install them straight into the game:
 
 ```
 gradlew installSacredMod -PsacredDir="C:/Games/Sacred Gold"
 ```
 
-The `dev.ancaria.coderpack` plugin and API resolve as published dependencies,
-not from sibling directories: the plugin from the Gradle Plugin Portal, the API
-from Maven Central. `gradle/libs.versions.toml` pins both the plugin and the
-API at `0.200.0`, mod API 3. Maven Local is checked first, so running
-`publishToMavenLocal` in `build` or `coderpack` lets you test an unreleased
-change.
-
-## SRML
-
-SRML stands for Sacred Repository Mod Layout. Version 1 identifies a repository
-by `sacred.mods.repository.json` at its root. This repository has the following
-shape:
-
-```
-sacred.mods.repository.json   repository index, generated
-registry.toml                 repository metadata, written by hand
-icon.png                      repository icon
-<id>/                         mod code, build.gradle.kts, and icon.png
-```
-
-A mod remains an ordinary Gradle project. In a repository with several mods,
-the convention is to name each directory after the mod ID. `coderpack index`
-then adds relative `source` and `icon` paths. If the directory has another
-name, those fields are omitted. A single-mod repository may use its root
-`icon.png` as the mod icon.
-
-Do not edit the index by hand. Mod ID, name, version, description, API and
-loader ranges, authors, website, and conflicts come from
-`META-INF/declaration.toml` in each built JAR. Optional fields stay absent when
-the descriptor or layout does not provide them. The generator takes the
-repository name, description, site, icon, and release URL template from
-`registry.toml`. It calculates the JAR filename, byte size, SHA-256, and
-download URL from the artifact and template.
-
-```
-coderpack index           regenerate it
-coderpack index --check   verify it without writing
-```
-
-Raising a version is enough. On `master`, CI writes the index and commits it,
-so you never have to remember the command. It indexes a mod that is already
-released from the JAR on that release, and one whose version has no tag yet from
-the JAR it just built and is about to publish. That way the checksum in the
-index always describes the file the download URL serves, which is what a
-launcher checks before it installs anything.
-
-On a pull request, where nothing can be pushed, CI generates the index and does
-not compare it. Generation still refuses a JAR that fails the mod verifier, an
-unreadable `registry.toml`, or two mods claiming one id.
+The `dev.ancaria.coderpack` plugin comes from the Gradle Plugin Portal and the
+API from Maven Central. `gradle/libs.versions.toml` pins both. Maven Local
+comes first, so `publishToMavenLocal` in `build` or `coderpack` lets you try an
+unreleased change.
 
 ## Releases
 
-Each mod has its own GitHub release and a tag in the form
-`<id>-v<version>`. The release contains that mod's JAR. On `master`, the
-workflow builds all four mods, regenerates and commits the index, and creates
-a release only when the corresponding tag is absent. A run with unchanged
-versions publishes nothing.
+Each mod has its own releases, tagged `<id>-v<version>`. To release a mod,
+raise its version in `build.gradle.kts` and push to `master`. CI builds the
+mods, regenerates and commits the index, and publishes a release when that tag
+doesn't exist yet.
 
-The index records each JAR's URL, size, and SHA-256. Before installation, the
-launcher checks the hash, reads the descriptor from the downloaded JAR, and
-verifies its ID and loader compatibility. A failed download does not remain in
-the mods directory.
+The index always describes the exact jar behind its download URL. Before
+installing, the launcher checks the SHA-256, reads the descriptor, and checks
+compatibility. A file that fails never reaches the mods folder.
 
-You can publish another repository the same way. Set its name, site, and
-release URL template in `registry.toml`, build the JARs, and run
-`coderpack index`. Players can then add its HTTPS clone URL to the launcher.
+## License
+
+MIT, see [LICENSE](LICENSE).
