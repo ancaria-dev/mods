@@ -1,32 +1,23 @@
 # Self Check
 
-Self Check subscribes to every event the loader can deliver, records what
-arrives, answers events that a mod may rewrite, and reads the hero through the
-direct API.
+Self Check shows, in its own window, which parts of the loader work in your
+game right now.
 
-The window tracks fifty scenarios. ⬜ means waiting, ✅ means passed, and ❌
-means failed. Under each scenario's name a short line says what to do in the
-game to pass it, for example "Open any chest or barrel" or "Sell an item to a
-merchant by dragging it or with Shift+click". Keep the window open while you
-play to see which events, rewrites and commands make the full trip between the
-game and the mod.
+It listens to every event the loader delivers and tracks fifty scenarios. Each
+row tells you what to do in the game to pass it, such as “Open any chest or
+barrel”. ⬜ means waiting, ✅ means passed, ❌ means failed. A panel beside the
+list shows your hero as the mod reads it through the API.
 
-Run these commands from the `mods` repository root:
+## Getting started
 
-```
-gradlew :self-check:assembleSacredMod
-gradlew :self-check:installSacredMod -PsacredDir="C:/Games/..."
-python self-check/verify.py
-java -cp self-check/build/sacred-mod/self-check-0.200.0.jar dev.ancaria.selfcheck.view.Preview
-```
+1. Install the loader and open the launcher, as the
+   [mods README](../README.EN.md) describes.
+2. Install Self Check from the Available tab and press Play.
+3. Keep the window open while you play and follow the hints under each
+   scenario.
 
-The build writes `self-check/build/sacred-mod/self-check-0.200.0.jar`, and the
-install task copies that jar to `<Sacred Gold>/mods`.
-
-`python self-check/verify.py` needs the built mod jar and Coderpack’s `api` and
-`zygote` jars in Maven Local. It starts the zygote, acts as the host, sends one
-frame for every scenario, answers the mod's commands, checks all ten decided
-verdicts and the console answer, and then exits.
+Type `selfcheck` in the game console to get a one-line summary, such as
+`Self Check: 31 of 50 scenarios passed`.
 
 ## Scenarios
 
@@ -83,110 +74,102 @@ verdicts and the console answer, and then exits.
 | Console command is claimed | Open the game console and type selfcheck |
 | An event the SDK has no class for | Nothing to do: passes on an event this API has no class for |
 
-Every scenario passes on a real event or a real answer from the game. None of
-them is ticked by a timer. A save the game reports as failed, a type name that
-does not map back to its id, or a hero reading that comes back empty marks its
-row ❌ instead.
+A scenario passes only on a real event or a real answer from the game, never
+on a timer. A failed save, a type name that doesn't map back to its id, or an
+empty hero reading marks its row ❌.
 
 ## What it changes
 
-Receiving an event proves that the game-to-mod path works. The deciding
-scenarios also send a verdict back:
+Most scenarios only prove that an event reaches the mod. The deciding ones
+also send an answer back, to prove the return path works:
 
-| Event | What Self Check does |
+| Event | What Self Check answers |
 |---|---|
-| damage | raises the remaining health by 1 HP, capped at maximum health |
-| gold gained | raises the gain by one coin |
-| experience | raises the new total by one point |
-| skill, attribute, combat art, player pickup | answers with the value the game already supplied |
-| console line `selfcheck` | vetoes it and answers in the console |
+| Damage | Leaves you 1 HP more, up to maximum health |
+| Gold gained | One extra coin |
+| Experience | One extra point |
+| Skill, attribute, combat art, your pickup | The value the game already proposed, so nothing changes |
+| Console line `selfcheck` | Vetoes the line and prints the summary |
 
-Damage at maximum health passes without sending a rewrite because there is
-nothing to soften. Skill, attribute, combat-art and player-pickup verdicts
-return the current value, exercising the listener's return path without
-changing the save. Pickups that do not belong to the player are logged but do
-not pass the pickup scenario.
+Spending gold stays unchanged. Damage at full health sends no rewrite, since
+there is nothing to soften. Pickups by other creatures are logged but don't
+pass the pickup scenario.
 
-Gold spent is left unchanged.
-
-Self Check stands down when another mod has already decided the event. A
-number whose `getValue()` no longer equals its `getInitial()`, or a pickup
-whose `isEdited()` is true, passes its scenario without a rewrite. This keeps it
-from undoing Old Huge Potions or All My Runes.
-
-## The console command
-
-Type `selfcheck` in the game console. Self Check vetoes the line, so the game
-never sees it and prints no error, and then answers with one line such as
-`Self Check: 31 of 50 scenarios passed` through
-`getContext().getGame().getConsole().print(...)`. Any other line is left to
-the game.
-
-The veto is returned from the listener at once. The answer is a command, so it
-is sent afterwards from the probe thread rather than from the listener that the
-game thread is waiting on.
+Self Check steps aside when another mod has already decided an event. If a
+number's `getValue()` no longer equals its `getInitial()`, or a pickup's
+`isEdited()` is true, the scenario passes without a rewrite. That's why it runs
+safely next to Old Huge Potions and All My Runes.
 
 ## The hero panel
 
-The right-hand column shows the hero as the direct API reads it: class, level,
-HP and maximum HP, gold, experience, position, region and sector, the six
-attributes and the points left to spend, skill slots and skill points, learned
-combat arts with their base level and gear bonus, the journal statistics (kills,
-resurrections, discovered areas, play time, time since the last death, survival
-bonus), and the character sheet (armour, attack speed, movement speed, and the
-four resistances).
+The right-hand column shows the hero as the direct API reads it:
 
-It is read again every two seconds while a hero is loaded, and straight away on
-each `Hero` event. The first reading that comes back whole passes the “Hero is
-read through the API” scenario. Later readings only refresh the panel.
+- class, level, HP and maximum HP, gold, experience;
+- position, region and sector;
+- the six attributes and the points left to spend;
+- skill slots and skill points;
+- learned combat arts with their base level and gear bonus;
+- journal statistics: kills, resurrections, discovered areas, play time, time
+  since the last death, survival bonus;
+- the character sheet: armour, attack speed, movement speed and the four
+  resistances.
 
-## Code structure
+The panel refreshes every two seconds while a hero is loaded, and straight
+away on each `Hero` event. The first complete reading passes “Hero is read
+through the API”.
 
-| Package | Job |
-|---|---|
-| `model` | Plain data for scenarios, statuses, log lines, and hero readings |
-| `viewmodel` | Observable state and the operations that update it |
-| `view` | The read-only window |
-| root package | `SelfCheckMod` and its event subscriptions, `HeroProbe`, and the scenario catalogue in `Checks` |
+## How it works
 
-The loader dispatches events on `sal-dispatch`. `SelfCheckModel` moves every UI
-update onto the JavaFX application thread, so listeners never mutate JavaFX
-state directly. Events that can arrive tens of times a second (spawns,
-despawns, sectors, health changes) are tallied and shown in one UI update
-however many arrived meanwhile, and only their first pass is written to the
-log.
+`SelfCheckMod` owns the event subscriptions, the console command and the probe
+thread. `HeroProbe` reads the hero. `Checks` holds the scenario catalogue and
+every hint. The `model`, `viewmodel` and `view` packages hold the data, the
+observable state and the read-only window.
 
-## JavaFX choices
+Every call to the game runs on one daemon thread, `self-check-probe`. A call
+can block for up to two seconds while the reply travels back. Inside an event
+listener that wait would stall `sal-dispatch`, and inside a deciding listener
+the game thread too. So the listener returns the console veto at once, and the
+probe thread prints the answer afterwards. `onUnload` stops the thread.
 
-**Toolkit startup.** The mod calls `Platform.startup` through `Ui.boot()` and
-does not use an `Application` subclass. If JavaFX cannot start, the mod logs the
-failure and continues checking events without a window.
+After the first `Hero` event, the probe thread asks for
+`getTypeName(9)` and checks it starts with `TYPE_`, asks `getTypeId` for that
+name and expects 9 back, reads `getUiString("UI_STATS_VICTORY")`, and lists the
+world's creatures, then looks one up again by ref.
 
-**Bundled runtime.** The jar includes JavaFX 21.0.9 with the Windows classifier,
-classes, and native libraries. The loader starts a plain Java 21 JVM without a
-module path, so the mod must carry JavaFX itself. This accounts for most of the
-jar’s size.
+Events that arrive tens of times a second (spawns, despawns, sectors, health
+changes) are tallied into one UI update. Only their first pass reaches the log,
+which keeps the newest 500 lines.
 
-**`setImplicitExit(false)`.** Closing the window leaves the JavaFX toolkit
-running. Its non-daemon thread would also keep the loader JVM alive after the
-host disconnects, so the zygote calls `System.exit(0)` when it receives `BYE`
-or reaches the end of the host pipe. Shutdown hooks still run.
+The window uses JavaFX 21.0.9 for Windows, bundled into the jar, because the
+loader starts a plain JVM without JavaFX. That's most of the jar's size. If
+JavaFX can't start, the mod keeps checking events without a window. Closing the
+window leaves the toolkit running, so the loader ends the JVM itself when the
+game disconnects.
 
-**Bounded, styled log.** The log uses a `ListView` of styled lines and keeps the
-newest 500 entries. New entries scroll into view automatically.
+## Building
 
-## The probe thread
+Run these from the `mods` repository root:
 
-Every call to the game goes through one daemon thread named
-`self-check-probe`. After the first `Hero` event it calls
-`getTypeRegistry().getTypeName(9)` and checks that the answer starts with
-`TYPE_`, asks `getTypeId` for that name and expects 9 back, reads
-`getUiString("UI_STATS_VICTORY")`, and lists the world's creatures and asks for
-one of them again by ref. The same thread reads the hero for the panel and
-sends the console answer.
+```
+gradlew :self-check:assembleSacredMod
+gradlew :self-check:installSacredMod -PsacredDir="C:/Games/..."
+```
 
-Each command blocks its caller for up to two seconds while the zygote’s reader
-thread receives the reply. Waiting inside an event listener would pause
-`sal-dispatch`, and inside a deciding listener it would hold the game thread as
-well. The probe thread keeps event delivery moving while the round trips
-complete. `onUnload` stops it.
+The first command writes `self-check/build/sacred-mod/self-check-0.200.0.jar`.
+The second copies it into `<Sacred Gold>/mods`.
+
+Two commands test the mod without the game:
+
+```
+python self-check/verify.py
+java -cp self-check/build/sacred-mod/self-check-0.200.0.jar dev.ancaria.selfcheck.view.Preview
+```
+
+`verify.py` needs the built jar plus Coderpack's `api` and `zygote` jars in
+Maven Local. It starts the zygote, plays the host, sends one frame per
+scenario, answers the mod's commands, and checks all ten decided verdicts and
+the console answer. `Preview` opens the window with no game session.
+
+## License
+
+MIT, see [LICENSE](../LICENSE).

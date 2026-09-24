@@ -1,15 +1,21 @@
 # All My Runes
 
-A rune for another class becomes a copy of one of your own runes when you pick
-it up. The mod copies the type, price, level, minimum level, and modifiers from
-a rune it has already seen, so the replacement upgrades the copied rune’s
-combat art instead of merely taking its name and appearance.
+All My Runes turns every rune for another class into a rune for your own class
+when you pick it up.
 
-Pick up one rune for your class first. The mod remembers one rune of each type
-for the current session, then chooses at random from those remembered runes
-when it replaces a foreign one.
+The mod needs a rune of your class to copy, so pick one up first. From then on,
+each foreign rune becomes a copy of a random rune of yours seen this session.
+The copy takes over the type, price, level, minimum level and modifiers, so
+reading it raises your combat art, not just a look-alike.
 
-It says what it did in `<Sacred Gold>/logs/mods.log`:
+## Getting started
+
+1. Install the loader and open the launcher, as the
+   [mods README](../README.EN.md) describes.
+2. Install All My Runes from the Available tab and press Play.
+3. Pick up one rune of your own class, then collect runes as usual.
+
+The mod reports what it does in `<Sacred Gold>/logs/mods.log`:
 
 ```
 [2026-09-23 14:05:31.042] [all-my-runes]: 79 runes are known
@@ -17,16 +23,22 @@ It says what it did in `<Sacred Gold>/logs/mods.log`:
 [2026-09-23 14:09:48.217] [all-my-runes]: Changed TYPE_SMOVE_UPGRADE_DEM_ATTACKE from a DAEMON rune to TYPE_SMOVE_UPGRADE_HARDHIT_SERA
 ```
 
-The earlier type-only version changed a rune’s name and appearance without
-changing the combat art it upgraded. The read-only probe used to trace that
-problem is `artifacts/probes/item_probe.py` in the research repository.
+## What stays the same
 
-## Rune table
+- A rune missing from the rune table stays as it is.
+- A foreign rune stays as it is until the mod has seen one of yours.
+- Runes picked up by other creatures don't change.
+- The Vampiress and her vampire form count as one class, so changing form
+  doesn't make her own runes foreign.
 
-On first use, the mod copies its bundled table to
-`<Sacred Gold>/mods/all-my-runes.txt`. Later runs read that file, so you can add
-missing owners without rebuilding the mod. Restart the loader after editing it
-because the table is loaded once per loader run.
+The change is made on the item itself. Drop a converted rune and pick it up
+again, and it stays the copy.
+
+## Configuration
+
+The mod decides which class owns a rune from a table. On first use it copies
+its bundled table to `<Sacred Gold>/mods/all-my-runes.txt`, and after that it
+reads your copy. Each line names a class and a rune type:
 
 ```
 SERAPHIM    TYPE_SMOVE_UPGRADE_HARDHIT_SERA
@@ -34,9 +46,9 @@ DAEMON      TYPE_SMOVE_UPGRADE_DEM_ATTACKE
 ?           TYPE_SPELL_UPGRADE_LIGHTNINGSTRIKE
 ```
 
-The bundled table assigns 79 of the game’s 140 rune type names. These are the
-types whose names identify a class through a `DWR_`, `DEM_`, `DE_`, `VL_`, or
-`ARROW_` prefix, or a `_SERA`, `_GLAD`, `_DELF`, `_VAMP`, or `_WELF` suffix.
+The bundled table assigns 79 of the game's 140 rune types, the ones whose
+names give away their class: a `DWR_`, `DEM_`, `DE_`, `VL_` or `ARROW_`
+prefix, or a `_SERA`, `_GLAD`, `_DELF`, `_VAMP` or `_WELF` suffix.
 
 | Class | Assigned runes |
 |---|---|
@@ -49,21 +61,30 @@ types whose names identify a class through a `DWR_`, `DEM_`, `DE_`, `VL_`, or
 | Gladiator | 4 |
 | *unassigned* | **61** |
 
-The 61 unassigned lines contain 17 generic `TYPE_SMOVE_UPGRADE_*` names and 44
-`TYPE_SPELL_UPGRADE_*` names. Their names do not identify a class. They appear
-at the bottom of the file with `?` in place of the owner. Replace `?` with one
-of the class names listed in the file, then restart the loader. Invalid class
-names, malformed lines, comments, and rune types absent from the running game
-are ignored.
+The 61 unassigned runes (17 generic `TYPE_SMOVE_UPGRADE_*` and 44
+`TYPE_SPELL_UPGRADE_*`) sit at the bottom of the file with `?` as the owner. To
+assign one, replace `?` with a class name listed in the file, then restart the
+loader: the mod reads the table once per run. Unknown class names, malformed
+lines, comments and rune types the game doesn't have are ignored.
 
-## Limits
+## Building
 
-A rune missing from the table is left alone. The mod also leaves a listed
-foreign rune alone until it has seen one of your own, and it does not change
-runes picked up by creatures.
+Run these from the `mods` repository root:
 
-The Vampiress and her vampire form share the same rune owner. Changing form
-does not make the mod treat her runes as foreign.
+```
+gradlew :all-my-runes:assembleSacredMod
+gradlew :all-my-runes:installSacredMod -PsacredDir="C:/Games/..."
+```
 
-The replacement edits the item itself. If you drop that rune and pick it up
-again, it remains the copied rune.
+The first command writes the jar to `all-my-runes/build/sacred-mod/`. The
+second copies it into `<Sacred Gold>/mods`.
+
+An earlier version changed only a rune's type. That changed its name and look
+but not the combat art it raised, because the combat art lives in the modifier
+list. The read-only probe that traced this is
+`artifacts/probes/item_probe.py` in the
+[research](https://github.com/ancaria-dev/research) repository.
+
+## License
+
+MIT, see [LICENSE](../LICENSE).

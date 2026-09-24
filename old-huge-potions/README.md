@@ -1,53 +1,75 @@
 # Old Huge Potions
 
-Sacred did not always split potions into sizes. When the hero picks up a
-supported small, medium, minor, or major potion, this mod changes its type to
-the largest version of the same kind.
+Old Huge Potions turns every small or medium potion you pick up into the
+largest one of its kind.
 
-Each change is a line in `<Sacred Gold>/logs/mods.log`:
+Sacred didn't always split potions into sizes. With this mod, a small red
+potion becomes a large red one the moment you pick it up. The change is in name
+and look only: the potion keeps its original price and effect.
+
+## Getting started
+
+1. Install the loader and open the launcher, as the
+   [mods README](../README.EN.md) describes.
+2. Install Old Huge Potions from the Available tab and press Play.
+3. Pick up a potion.
+
+Each change appears as a line in `<Sacred Gold>/logs/mods.log`:
 
 ```
 [2026-09-23 14:05:31.058] [old-huge-potions]: 16 potion types will be upgraded
 [2026-09-23 14:06:02.914] [old-huge-potions]: TYPE_OBJECT_POTION_SMALL_RED → TYPE_OBJECT_POTION_LARGE_RED
 ```
 
-## How potion types are found
+## Which potions change
 
-The mod has no hard-coded potion IDs or fixed list of potion names. After the
-first hero event, it asks the running game for every type whose name starts
-with `TYPE_OBJECT_POTION_`. It then builds upgrade pairs from these two naming
-patterns:
+The mod keeps no list of potions. Once your hero enters the world, it asks the
+game for every type whose name starts with `TYPE_OBJECT_POTION_` and pairs them
+by name:
 
-| Family | Names | Upgrade |
+| Family | Names | Becomes |
 |---|---|---|
-| Coloured | `SMALL`, `MEDIUM`, or `LARGE` with `RED`, `YELLOW`, `GREEN`, `BLUE`, or `BLACK` | Replace the size with `LARGE` |
-| Old | `HEALTH`, `MANA`, or `STAMINA` with `MINOR`, `MAJOR`, or `FULL` | Replace the suffix with `FULL` |
+| Coloured | `SMALL`, `MEDIUM` or `LARGE` with `RED`, `YELLOW`, `GREEN`, `BLUE` or `BLACK` | The `LARGE` version |
+| Old | `HEALTH`, `MANA` or `STAMINA` with `MINOR`, `MAJOR` or `FULL` | The `FULL` version |
 
-The game data uses `BLACK`, not `PURPLE`. The known build contains 24 potion
-types, of which 16 have a larger form.
+The game calls the purple potion `BLACK`. The known build has 24 potion types,
+and 16 of them have a larger form. A new colour or kind works too, as long as
+its names follow one of these patterns.
 
-A new colour or kind also works when both names follow one of these patterns.
-If a name does not match a pattern, or the matching `LARGE` or `FULL` type is
-missing, the mod leaves that potion alone. Potions that are already `LARGE` or
-`FULL` are unchanged.
+These stay as they are:
+
+- potions already `LARGE` or `FULL`;
+- names that match no pattern, or whose larger type is missing;
+- potions picked up by other creatures.
 
 ## When the change happens
 
-The potion keeps its original type while it lies on the ground. The mod changes
-the object during the hero’s pickup, before it reaches the belt. Pickups by
-other creatures are ignored.
+A potion keeps its type while it lies on the ground. The mod changes it as your
+hero picks it up, before it reaches the belt. The change stays: drop the potion
+and it's still the large one.
 
-The change stays on the object after the event. If the hero drops the potion,
-it still has the upgraded type. The mod does not change potions when they
-spawn because that path runs about 3,000 times during a world load and is not
-used for object edits.
+The mod doesn't touch potions when they spawn. That path runs about 3,000 times
+during a world load and isn't meant for editing objects.
 
-## What the mod does not change
+## What stays the same
 
-Changing an item’s type changes its name and appearance only. The mod does not
-copy the larger potion’s price or modifiers, so the potion keeps the original
-price and effect. In other words, the current version is a visual and naming
-change.
+Changing an item's type changes its name and appearance. The mod doesn't copy
+the larger potion's price or modifiers, and the effect lives in the modifier
+list (`Item.getModifiers()`). So a small potion turned large still costs and
+heals like a small one.
 
-An item’s effect lives in its modifier list, available through
-`Item.getModifiers()`. The mod does not rewrite that list.
+## Building
+
+Run these from the `mods` repository root:
+
+```
+gradlew :old-huge-potions:assembleSacredMod
+gradlew :old-huge-potions:installSacredMod -PsacredDir="C:/Games/..."
+```
+
+The first command writes the jar to `old-huge-potions/build/sacred-mod/`. The
+second copies it into `<Sacred Gold>/mods`.
+
+## License
+
+MIT, see [LICENSE](../LICENSE).

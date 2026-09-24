@@ -1,9 +1,9 @@
 # Tracer
 
-Tracer records every event SAL dispatches in
-`<Sacred Gold>/logs/logs-<time>.txt`. The filename uses the load time down to
-the second. The file is opened in append mode, so loads in the same second
-would share it.
+Tracer writes every event the loader receives to a log file, one file per run.
+
+Nothing changes in the game. You get a plain-text trace you can read after a
+session or hand to someone chasing a bug:
 
 ```
 21:44:07.311  World.LOADED
@@ -13,51 +13,75 @@ would share it.
 21:44:31.887  Damage               kind=damage damage=553 prev=19849 next=19296 max=26999   → 19296 → 19849
 ```
 
-Four classes divide the work:
+## Getting started
 
-- `TracerMod` opens the log and registers the recorder. Its `onUnload`
-  closes the sink, which the loader calls on `BYE`, when the host's pipe
-  closes, and when the mod is unregistered, so the last batch reaches the disk.
-- `Recorder` contains the single `@Subscribe` method and formats each line.
-- `Ring` stores pending lines. `add` performs no file I/O and never waits for
-  free capacity.
-- `Sink` drains the ring on a daemon thread and flushes each batch to disk.
+1. Install the loader and open the launcher, as the
+   [mods README](../README.EN.md) describes.
+2. Install Tracer from the Available tab and press Play.
+3. After the session, open `<Sacred Gold>/logs/logs-<yyyyMMdd-HHmmss>.txt`.
 
-## Why one listener covers everything
+The file name uses the time the mod loaded, down to the second. `mods.log`
+gets one line saying where the trace goes.
 
-SAL dispatches to listeners registered for an event’s class or any of its
-superclasses. A method that accepts the base `Event` class therefore receives
-every event:
+## What a line shows
+
+Each line holds the time, the event name and its fields. Events the API has no
+class for still appear, under their wire name with every raw field.
+
+When a mod can decide an event, Tracer records the final verdict after every
+other mod has had its say: `→ vetoed`, or the number the game proposed and the
+number it gets back, such as `→ 250 → 1000`. Tracer only watches. It can't
+change a verdict.
+
+If Tracer falls behind, it keeps the newest 8,192 lines, drops the oldest, and
+marks the gap:
+
+```text
+  … Dropped 12 events because the tracer fell behind
+```
+
+The newest history is usually the useful end of a trace after a failure.
+
+## How it works
+
+One listener covers every event. The loader delivers an event to listeners of
+its class and of every superclass, so a method that takes the base `Event`
+receives them all:
 
 ```java
 @Subscribe(priority = Priority.MONITOR)
 public void onAny(Event event) { ... }
 ```
 
-Events without an SDK class arrive as `Unknown`. The tracer uses their wire
-name and records all raw fields.
+`MONITOR` runs after `FIRST`, `NORMAL` and `LAST`, which is why the line shows
+the accumulated verdict.
 
-`MONITOR` runs after `FIRST`, `NORMAL`, and `LAST`. A decidable event is
-recorded with the accumulated verdict: `→ vetoed`, or the number the game
-proposed and the number it will be told, such as `→ 250 → 1000`. A monitor
-listener returns `void`, so the tracer cannot alter the verdict.
+Four classes split the work:
 
-## Overflow
+- `TracerMod` opens the file and registers the recorder. Its `onUnload` closes
+  the file, so the last batch reaches the disk when the game exits, the host's
+  pipe closes, or the mod is unregistered.
+- `Recorder` holds the listener and formats each line.
+- `Ring` buffers pending lines. Adding a line never touches the disk and never
+  waits.
+- `Sink` drains the ring on a daemon thread and writes batches to disk.
 
-The ring holds 8,192 pending lines. If it fills, new entries overwrite the
-oldest ones. The next written batch marks the loss:
+The game thread may be waiting on a decidable event, so the listener does no
+file I/O. The trace lives in its own file rather than in `mods.log`: thousands
+of event lines would bury every other mod's output.
 
-```text
-  … Dropped 12 events because the tracer fell behind
+## Building
+
+Run these from the `mods` repository root:
+
+```
+gradlew :tracer:assembleSacredMod
+gradlew :tracer:installSacredMod -PsacredDir="C:/Games/..."
 ```
 
-This keeps the most recent history, which is usually the useful end of a trace
-after a failure.
+The first command writes the jar to `tracer/build/sacred-mod/`. The second
+copies it into `<Sacred Gold>/mods`.
 
-## Why its own file
+## License
 
-`getContext().log(...)` writes to `<Sacred Gold>/logs/mods.log`, the file every
-mod shares, and Tracer uses it for its one line about where the trace is going.
-The trace itself stays in its own file: it is what this mod produces, one file
-per run that can be handed to somebody, and thousands of event lines in
-`mods.log` would bury every other mod's.
+MIT, see [LICENSE](../LICENSE).
